@@ -21,12 +21,12 @@ typography:
     fontWeight: 400
     lineHeight: "1.5"
   narration:
-    fontFamily: "Georgia, serif"
+    fontFamily: "Georgia, 'Iowan Old Style', 'Palatino Linotype', 'Book Antiqua', serif"
     fontSize: "15.5px"
     fontWeight: 400
     lineHeight: "1.5"
   title:
-    fontFamily: "system-ui, -apple-system, 'Segoe UI', sans-serif"
+    fontFamily: "Georgia, 'Iowan Old Style', 'Palatino Linotype', 'Book Antiqua', serif"
     fontSize: "17px"
     fontWeight: 600
     lineHeight: "1.2"

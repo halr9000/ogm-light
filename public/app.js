@@ -15,6 +15,9 @@ let state = {
   kind: 'do',
   tts: localStorage.getItem('ogml_tts') === '1',
   sheet: null,
+  narration: {},       // messageId -> same-origin mp3 url (server-rendered takes)
+  audio: null,         // currently playing narration
+  whisperIds: new Set(),
 };
 
 function show(name) {
@@ -111,13 +114,19 @@ async function openTable(c) {
   show('table');
   $('transcript').innerHTML = '';
   try {
-    const data = await api(`/api/campaigns/${c.id}/messages?limit=30`);
+    // Snapshot, private line with the GM, and narration takes in one round.
+    const [data, wp, camp] = await Promise.all([
+      api(`/api/campaigns/${c.id}/messages?limit=30`),
+      api(`/api/campaigns/${c.id}/whispers`).catch(() => null),
+      api(`/api/campaigns/${c.id}`).catch(() => null),
+    ]);
     state.names = data.names || {};
     state.messages = (data.messages || []).slice().sort((a, b) => a.seq - b.seq);
     state.olderBefore = data.olderBefore;
     state.lastSeq = state.messages.length ? state.messages[state.messages.length - 1].seq : 0;
-    for (const m of state.messages) renderMessage(m);
-    $('transcript').scrollTop = $('transcript').scrollHeight;
+    state.narration = camp?.narrationAudio || {};
+    state.whisperIds = new Set();
+    renderTimeline(wp?.whispers ? wp.whispers.slice().reverse() : []);
     connectStream();
   } catch (err) {
     $('transcript').innerHTML = `<div class="msg system"><span class="body">${esc(err.message)}</span></div>`;
@@ -129,11 +138,13 @@ $('back').addEventListener('click', async () => {
   try { await home(); } catch {}
 });
 
+// The stream speaks named SSE events; onmessage only catches unnamed ones,
+// so each type that matters the client gets its own listener.
 function connectStream() {
   if (state.es) state.es.close();
   const es = new EventSource(`/api/campaigns/${state.campaignId}/events?lastSeq=${state.lastSeq}`);
   state.es = es;
-  es.onmessage = (e) => {
+  const onMessage = (e) => {
     let ev;
     try { ev = JSON.parse(e.data); } catch { return; }
     if (e.lastEventId) state.lastSeq = Math.max(state.lastSeq, Number(e.lastEventId) || 0);
@@ -145,7 +156,31 @@ function connectStream() {
     }
     if (msg?.characterId || ev.sheet) loadSheet();
   };
+  for (const type of ['message_added', 'message_updated']) es.addEventListener(type, onMessage);
+  es.addEventListener('whisper_activity', () => { refreshWhispers(); });
+  // The server fell too far behind to replay: rebuild from a fresh snapshot.
+  es.addEventListener('resync', () => { openTable({ id: state.campaignId, title: state.campaignTitle }); });
+  es.onmessage = onMessage;
   es.onerror = () => { /* EventSource retries on its own */ };
+}
+
+async function refreshWhispers() {
+  try {
+    const wp = await api(`/api/campaigns/${state.campaignId}/whispers`);
+    for (const w of (wp.whispers || []).slice().reverse()) {
+      if (!state.whisperIds.has(w.id)) renderWhisper(w);
+    }
+  } catch { /* the next whisper_activity retries */ }
+}
+
+// Transcript order: table messages and the private line interleave by time.
+function renderTimeline(whispers) {
+  const events = [
+    ...state.messages.map((m) => ({ t: Date.parse(m.createdAt || '') || 0, m })),
+    ...whispers.map((w) => ({ t: Date.parse(w.createdAt || '') || 0, w })),
+  ].sort((a, b) => a.t - b.t);
+  for (const e of events) e.w ? renderWhisper(e.w) : renderMessage(e.m);
+  $('transcript').scrollTop = $('transcript').scrollHeight;
 }
 
 /* ---------- rendering ---------- */
@@ -160,12 +195,19 @@ function whoFor(m) {
   return state.names[m.characterId] || state.names[m.userId] || 'Player';
 }
 
-function renderMessage(m) {
-  const div = document.createElement('div');
-  div.className = 'msg ' + m.authorType + (m.kind === 'ooc' ? ' ooc' : '');
-  const who = whoFor(m);
-  div.innerHTML = (who ? `<div class="who">${esc(who)}</div>` : '') +
-    `<div class="body">${esc(m.content)}</div>`;
+// Markdown-lite for DM prose: speaker beats and roll markers become quiet
+// labels, *italics* and **bold** render. Input is esc()'d first, so the
+// tags below are the only markup that can reach innerHTML.
+function richBody(text) {
+  let s = esc(text)
+    .replace(/\[roll:[0-9a-f-]+\]\n?/gi, '')
+    .replace(/(^^|\n)\[([^[\]|]+?)\s*\|\s*([^[\]]+)\]\s*/g, '$1<span class="beat">$2 · $3</span> ')
+    .replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>')
+    .replace(/\*([^*\n]+)\*/g, '<i>$1</i>');
+  return s;
+}
+
+function appendMsg(div, m) {
   const el = $('transcript');
   const nearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 120;
   el.appendChild(div);
@@ -174,7 +216,28 @@ function renderMessage(m) {
     if (nearBottom) el.scrollTop = el.scrollHeight;
     else if (m.authorType === 'dm') $('new-msgs').hidden = false;
   }
-  if (m.authorType === 'dm' && state.tts) speak(m.content);
+}
+
+function renderMessage(m) {
+  const div = document.createElement('div');
+  div.className = 'msg ' + m.authorType + (m.kind === 'ooc' ? ' ooc' : '');
+  const who = whoFor(m);
+  const body = m.authorType === 'dm' ? richBody(m.content) : esc(m.content);
+  div.innerHTML = (who ? `<div class="who">${esc(who)}</div>` : '') +
+    `<div class="body">${body}</div>`;
+  appendMsg(div, m);
+  if (m.authorType === 'dm' && state.tts) speak(m);
+}
+
+// The private line with the GM, set apart from table talk.
+function renderWhisper(w) {
+  state.whisperIds.add(w.id);
+  const div = document.createElement('div');
+  div.className = 'msg whisper ' + (w.direction === 'to_player' ? 'from-dm' : 'to-dm');
+  const who = w.direction === 'to_player' ? 'GM' : (state.names[w.characterId] || 'You');
+  const body = w.direction === 'to_player' ? richBody(w.content) : esc(w.content);
+  div.innerHTML = `<div class="who">${esc(who)}</div><div class="body">${body}</div>`;
+  appendMsg(div, { authorType: 'player' });
 }
 
 $('new-msgs').addEventListener('click', () => {
@@ -219,6 +282,7 @@ $('composer').addEventListener('submit', async (e) => {
         body: JSON.stringify({ message: text }),
       });
       collapseSeg();
+      refreshWhispers();
     } else {
       await api(`/api/campaigns/${state.campaignId}/actions`, {
         method: 'POST',
@@ -242,18 +306,39 @@ $('action-text').addEventListener('keydown', (e) => {
 
 /* ---------- TTS ---------- */
 
-function speak(text) {
+// Prefer the server's rendered take for this passage; fall back to the
+// browser voice only for passages the server never recorded.
+function speak(m) {
+  stopAudio();
+  const url = state.narration[m.id];
+  if (url) {
+    const a = new Audio(url);
+    state.audio = a;
+    a.play().catch(() => { state.audio = null; synthSpeak(m.content); });
+    return;
+  }
+  synthSpeak(m.content);
+}
+
+function synthSpeak(text) {
   if (!('speechSynthesis' in window)) return;
-  const u = new SpeechSynthesisUtterance(text.replace(/[*_`#]/g, ''));
+  const u = new SpeechSynthesisUtterance(
+    text.replace(/\[roll:[^\]]*\]/gi, '').replace(/^\[[^\]]*\]\s*/, '').replace(/[*_`#]/g, ''),
+  );
   u.rate = 1.05;
   speechSynthesis.speak(u);
+}
+
+function stopAudio() {
+  if (state.audio) { state.audio.pause(); state.audio = null; }
+  if ('speechSynthesis' in window) speechSynthesis.cancel();
 }
 
 $('tts-toggle').addEventListener('click', () => {
   state.tts = !state.tts;
   localStorage.setItem('ogml_tts', state.tts ? '1' : '0');
   $('tts-toggle').classList.toggle('on', state.tts);
-  if (!state.tts) speechSynthesis.cancel();
+  if (!state.tts) stopAudio();
 });
 
 /* ---------- sheet ---------- */

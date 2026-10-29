@@ -5,6 +5,7 @@
   --dim: #8d8577;
   --accent: #c9a35c;
   --danger: #b04a3a;
+  --serif: Georgia, 'Iowan Old Style', 'Palatino Linotype', 'Book Antiqua', serif;
   --radius: 12px;
   --textscale: 1; /* user text-size setting; max() below enforces the 16px floor */
 }
@@ -50,7 +51,7 @@ input:focus, textarea:focus { outline: 1px solid var(--accent); }
 
 /* login */
 #login { justify-content: center; padding: 24px; max-width: 420px; margin: 0 auto; }
-#login h1 { color: var(--accent); font-weight: 600; letter-spacing: 1px; }
+#login h1 { color: var(--accent); font-weight: 600; letter-spacing: 1px; font-family: var(--serif); }
 #login form { display: grid; gap: 12px; margin-top: 24px; }
 #login button { background: var(--accent); color: #14120f; font-weight: 700; padding: 12px; border-radius: var(--radius); }
 .error { color: var(--danger); margin: 0; }
@@ -62,7 +63,7 @@ input:focus, textarea:focus { outline: 1px solid var(--accent); }
   background: var(--panel);
   border-bottom: 1px solid #2a2620;
 }
-.bar h2 { margin: 0; font-size: 1.06rem; font-weight: 600; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bar h2 { margin: 0; font-size: 1.06rem; font-weight: 600; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--serif); }
 .bar-actions { display: flex; gap: 2px; }
 
 /* home */
@@ -82,7 +83,11 @@ input:focus, textarea:focus { outline: 1px solid var(--accent); }
 .msg.player { align-self: flex-end; }
 .msg.player .body { background: #26303f; border-radius: 14px 14px 4px 14px; padding: 10px 12px; }
 .msg.dm .who { color: #9fb37a; }
-.msg.dm .body { color: var(--text); font-family: Georgia, serif; font-size: 0.97rem; }
+.msg.dm .body { color: var(--text); font-family: var(--serif); font-size: 0.97rem; }
+.msg.dm .beat { color: var(--dim); font-family: system-ui, -apple-system, "Segoe UI", sans-serif; font-size: 0.78rem; letter-spacing: 0.4px; }
+.msg.whisper .body { font-style: italic; color: var(--dim); border-left: 2px solid #3a352c; padding-left: 10px; }
+.msg.whisper.from-dm .who { color: #9fb37a; }
+.msg.whisper.to-dm .who { color: var(--dim); }
 .msg.system { align-self: center; text-align: center; color: var(--dim); font-size: 0.81rem; }
 .msg.ooc .who { color: var(--dim); }
 .msg.ooc .body { color: var(--dim); font-style: italic; }
@@ -138,19 +143,19 @@ input:focus, textarea:focus { outline: 1px solid var(--accent); }
 }
 .sheet-close { position: absolute; top: calc(env(safe-area-inset-top) + 8px); right: 10px; padding: 8px; color: var(--dim); border-radius: 8px; }
 .sheet-close svg { width: 18px; height: 18px; display: block; }
-#sheet .sheet-name { margin: 0 26px 2px 0; font-size: 1.125rem; color: var(--accent); }
+#sheet .sheet-name { margin: 0 26px 2px 0; font-size: 1.3rem; color: var(--accent); font-family: var(--serif); }
 #sheet .sheet-sub { margin: 0 0 12px; color: var(--dim); font-size: 0.81rem; }
 #sheet .sheet-sec { margin: 14px 0 0; padding-top: 10px; border-top: 1px solid #2a2620; }
-#sheet .sheet-sec h4 { margin: 0 0 8px; font-size: 0.75rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--dim); }
+#sheet .sheet-sec h4 { margin: 0 0 8px; font-size: 0.81rem; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--accent); font-family: var(--serif); }
 #sheet .sheet-sec h4 i { font-size: 0.9rem; color: var(--accent); margin-right: 6px; vertical-align: -1px; }
-#sheet .sheet-hp b { font-size: 1.625rem; font-weight: 700; color: var(--accent); display: block; line-height: 1.1; }
+#sheet .sheet-hp b { font-size: 1.625rem; font-weight: 700; color: var(--accent); display: block; line-height: 1.1; font-family: var(--serif); }
 #sheet .sheet-hp span { color: var(--dim); font-size: 0.75rem; }
 #sheet .stat-grid, #sheet .abil-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 10px; }
 #sheet .abil-grid { grid-template-columns: repeat(6, 1fr); margin-top: 0; }
 #sheet .stat-grid > div, #sheet .abil-grid > div { background: #262219; border-radius: 8px; padding: 7px 4px; text-align: center; }
-#sheet .stat-grid b { display: block; font-size: 0.94rem; }
+#sheet .stat-grid b { display: block; font-size: 0.94rem; font-family: var(--serif); }
 #sheet .stat-grid span, #sheet .abil-grid span { color: var(--dim); font-size: 0.75rem; letter-spacing: 0.4px; }
-#sheet .abil-grid b { display: block; font-size: 1rem; }
+#sheet .abil-grid b { display: block; font-size: 1rem; font-family: var(--serif); }
 #sheet .abil-grid i { font-style: normal; display: block; font-size: 0.75rem; color: var(--accent); }
 #sheet .chips { display: flex; flex-wrap: wrap; gap: 5px; }
 #sheet .chip { background: #262219; border-radius: 999px; padding: 3px 10px; font-size: 0.78rem; }

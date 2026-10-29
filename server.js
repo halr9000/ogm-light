@@ -77,7 +77,9 @@ function rewriteRequestCookies(header) {
 
 const server = http.createServer((req, res) => {
   const url = new URL(req.url, `http://${req.headers.host}`);
-  if (!url.pathname.startsWith('/api/')) return serveStatic(req, res);
+  // /generated-audio/* is the OGM's narration audio; same-origin keeps the
+  // <audio> element cookie-free and cache-friendly, like /api/*.
+  if (!url.pathname.startsWith('/api/') && !url.pathname.startsWith('/generated-audio/')) return serveStatic(req, res);
 
   const proxied = (OGM_URL.protocol === 'https:' ? https : http).request(
     {
