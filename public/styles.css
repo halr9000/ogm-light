@@ -238,6 +238,8 @@ input:focus, textarea:focus { outline: 1px solid var(--accent); }
 .sheet-close svg { width: 18px; height: 18px; display: block; }
 #sheet .sheet-name { margin: 0 26px 2px 0; font-size: 1.3rem; color: var(--accent); font-family: var(--serif); }
 #sheet .sheet-sub { margin: 0 0 12px; color: var(--dim); font-size: 0.81rem; }
+#sheet .sheet-sub i.ra, #sheet .chip i.ra { font-size: 0.95em; margin-right: 4px; vertical-align: -1px; color: var(--accent); }
+#sheet .chip i.ra { font-size: 0.85em; vertical-align: -2px; }
 #sheet .sheet-sec { margin: 14px 0 0; padding-top: 10px; border-top: 1px solid #2a2620; }
 #sheet .sheet-sec h4 { margin: 0 0 8px; font-size: 0.81rem; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--accent); font-family: var(--serif); }
 #sheet .sheet-sec h4 i { font-size: 0.9rem; color: var(--accent); margin-right: 6px; vertical-align: -1px; }

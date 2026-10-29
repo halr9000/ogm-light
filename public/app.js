@@ -528,10 +528,63 @@ function sheetSection(title, icon) {
   return sec;
 }
 
-function chip(text, cls = '') {
+const CLASS_ICONS = {
+  barbarian: 'ra-axe', bard: 'ra-microphone', cleric: 'ra-angel-wings', druid: 'ra-leaf',
+  fighter: 'ra-crossed-swords', monk: 'ra-hand', paladin: 'ra-shield', ranger: 'ra-archer',
+  rogue: 'ra-plain-dagger', sorcerer: 'ra-fire', warlock: 'ra-eyeball', wizard: 'ra-crystal-ball',
+  artificer: 'ra-cog',
+};
+// evil/good outrank law/chaos: CG reads as good, CE as evil, LN as lawful
+const alignmentIcon = (a = '') => {
+  a = String(a).toLowerCase();
+  if (a.includes('evil')) return 'ra-skull';
+  if (a.includes('good')) return 'ra-sun';
+  if (a.includes('chaotic')) return 'ra-broken-shield';
+  if (a.includes('lawful')) return 'ra-crown';
+  return 'ra-radial-balance';
+};
+const GEAR_RULES = [
+  [/lantern/, 'ra-lantern-flame'],
+  [/torch/, 'ra-torch'],
+  [/axe/, 'ra-axe'],
+  [/javelin|spear|trident|pike|lance|halberd/, 'ra-spear-head'],
+  [/sword|blade|saber|scimitar|rapier|katana/, 'ra-sword'],
+  [/dagger|knife|kunai/, 'ra-knife'],
+  [/mess/, 'ra-knife-fork'],
+  [/mace|hammer|club|maul|sledge/, 'ra-hammer'],
+  [/staff|wand|\brod\b/, 'ra-crystal-wand'],
+  [/arrow|bolt|ammo|dart|shuriken|bullet/, 'ra-arrow-cluster'],
+  [/potion|elixir|vial/, 'ra-potion'],
+  [/shield/, 'ra-shield'],
+  [/helm/, 'ra-helmet'],
+  [/armor|mail|plate|robe|garb|vest|leather/, 'ra-vest'],
+  [/ring|amulet|pendant|trinket|circlet|crown|gem|idol/, 'ra-gem-pendant'],
+  [/key/, 'ra-key'],
+  [/ration|food|meat|jerky|cheese|bread/, 'ra-meat'],
+  [/waterskin|canteen|ale|wine|beer/, 'ra-water-drop'],
+  [/book|tome|codex|scroll|map|letter/, 'ra-book'],
+  [/tinder|campfire|flint/, 'ra-campfire'],
+  [/bedroll|tent|blanket/, 'ra-moon-sun'],
+  [/coin|gold|copper|silver|purse|gems\b/, 'ra-gold-bar'],
+  [/rope|chain|cord/, 'ra-chain'],
+  [/pack|bag|pouch|sack|case|kit|roll/, 'ra-ammo-bag'],
+];
+const gearIcon = (g) => {
+  const t = `${g.name || ''} ${g.slug || ''}`.toLowerCase();
+  for (const [re, ic] of GEAR_RULES) if (re.test(t)) return ic;
+  return '';
+};
+
+function chip(text, cls = '', icon = '') {
   const c = document.createElement('span');
   c.className = ('chip ' + cls).trim();
-  c.textContent = text;
+  if (icon) {
+    const i = document.createElement('i');
+    i.className = 'ra ' + icon;
+    i.setAttribute('aria-hidden', 'true');
+    c.appendChild(i);
+  }
+  c.appendChild(document.createTextNode(text));
   return c;
 }
 
@@ -562,12 +615,24 @@ function renderSheet() {
   identity.textContent = s.name || 'Unnamed';
   el.appendChild(identity);
 
-  const who = [s.race, [s.class, s.subclass].filter(Boolean).join(' · '), s.alignment]
-    .filter(Boolean).join(' — ');
   const lvl = s.level != null ? `Level ${s.level}` : '';
   const sub = document.createElement('p');
   sub.className = 'sheet-sub';
-  sub.textContent = [who, lvl].filter(Boolean).join(' · ');
+  const subParts = [];
+  if (s.race) subParts.push(esc(s.race));
+  if (s.class) {
+    const clsTxt = [s.class, s.subclass].filter(Boolean).join(' · ');
+    const clsIcon = CLASS_ICONS[String(s.class).toLowerCase()] || 'ra-pawn';
+    subParts.push(`<i class="ra ${clsIcon}" aria-hidden="true"></i>${esc(clsTxt)}`);
+  }
+  if (s.alignment) {
+    subParts.push(`<i class="ra ${alignmentIcon(s.alignment)}" aria-hidden="true"></i>${esc(s.alignment)}`);
+  }
+  // innerHTML is safe here: esc() covers every dynamic value; the <i> classes
+  // come only from the fixed ra-* maps above, never from user input.
+  let subHtml = subParts.join(' — ');
+  if (lvl) subHtml += (subHtml ? ' · ' : '') + esc(lvl);
+  sub.innerHTML = subHtml;
   el.appendChild(sub);
 
   // vitals
@@ -710,7 +775,7 @@ function renderSheet() {
     if (gear.length) {
       const wrap = document.createElement('div');
       wrap.className = 'chips';
-      for (const g of gear) wrap.appendChild(chip(g.qty > 1 ? `${g.name} ×${g.qty}` : g.name));
+      for (const g of gear) wrap.appendChild(chip(g.qty > 1 ? `${g.name} ×${g.qty}` : g.name, '', gearIcon(g)));
       sec.appendChild(wrap);
     }
     if (s.gold != null || s.copper != null) {
