@@ -2,12 +2,36 @@
 // ogm-light server: static files + same-origin API proxy to the local OGM.
 // No dependencies. Cookie auth works because /api/* stays same-origin.
 const http = require('http');
+const https = require('https');
 const fs = require('fs');
 const path = require('path');
 
+// Configuration (env, all optional):
+//   OGML_PORT           port this server listens on            (default 3222)
+//   OGML_HOST           bind address                           (default 0.0.0.0)
+//   OGML_UPSTREAM       full base URL of the OGM service to proxy to,
+//                       e.g. http://192.168.1.10:3005 or https://ogm.internal
+//   OGML_UPSTREAM_HOST  host-only alternative to OGML_UPSTREAM (default 127.0.0.1)
+//   OGML_UPSTREAM_PORT  port-only alternative to OGML_UPSTREAM (default 3005)
+// OGML_UPSTREAM wins over HOST/PORT when set. The L is for "light" — this is
+// the lightweight player client, and OGML_* keeps its settings namespaced
+// away from anything OGM itself defines.
 const PORT = Number(process.env.OGML_PORT || 3222);
-const TARGET_HOST = process.env.OGML_TARGET || '127.0.0.1';
-const TARGET_PORT = Number(process.env.OGML_TARGET_PORT || 3005);
+const HOST = process.env.OGML_HOST || '0.0.0.0';
+let UPSTREAM;
+try {
+  UPSTREAM = new URL(
+    process.env.OGML_UPSTREAM ||
+      `http://${process.env.OGML_UPSTREAM_HOST || process.env.OGML_TARGET || '127.0.0.1'}:${
+        Number(process.env.OGML_UPSTREAM_PORT || process.env.OGML_TARGET_PORT || 3005)
+      }`,
+  );
+} catch (e) {
+  console.error(`ogm-light: invalid OGML_UPSTREAM: ${e.message}`);
+  process.exit(2);
+}
+const TARGET_HOST = UPSTREAM.hostname;
+const TARGET_PORT = Number(UPSTREAM.port) || (UPSTREAM.protocol === 'https:' ? 443 : 80);
 const PUBLIC = path.join(__dirname, 'public');
 
 const TYPES = {
@@ -62,7 +86,7 @@ const server = http.createServer((req, res) => {
   const url = new URL(req.url, `http://${req.headers.host}`);
   if (!url.pathname.startsWith('/api/')) return serveStatic(req, res);
 
-  const proxied = http.request(
+  const proxied = (UPSTREAM.protocol === 'https:' ? https : http).request(
     {
       host: TARGET_HOST,
       port: TARGET_PORT,
@@ -92,6 +116,6 @@ const server = http.createServer((req, res) => {
   req.pipe(proxied);
 });
 
-server.listen(PORT, '0.0.0.0', () => {
-  console.log(`ogm-light: http://0.0.0.0:${PORT}  ->  http://${TARGET_HOST}:${TARGET_PORT}`);
+server.listen(PORT, HOST, () => {
+  console.log(`ogm-light: http://${HOST}:${PORT}  ->  ${UPSTREAM.origin}`);
 });

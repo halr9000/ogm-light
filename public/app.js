@@ -85,7 +85,7 @@ async function home() {
       b.className = 'campaign-card';
       const as = c.playingAs ? ` · playing ${c.playingAs.name || c.playingAs}` : '';
       const glance = c.glance?.scene ? ` — ${c.glance.scene}` : '';
-      b.innerHTML = `<b>${esc(c.title || c.name || 'Untitled')}</b><small>${esc(String(as).replace('· playing null', ''))}${esc(glance)}</small>`;
+      b.innerHTML = `<i class="ra ra-scroll-unfurled" aria-hidden="true"></i><b>${esc(c.title || c.name || 'Untitled')}</b><small>${esc(String(as).replace('· playing null', ''))}${esc(glance)}</small>`;
       b.addEventListener('click', () => openTable(c));
       list.appendChild(b);
     }
@@ -105,7 +105,6 @@ async function openTable(c) {
   state.olderBefore = null;
   state.sheet = null;
   $('table-title').textContent = state.campaignTitle;
-  $('tts-toggle').textContent = state.tts ? '🔊' : '🔇';
   $('tts-toggle').classList.toggle('on', state.tts);
   $('sheet').hidden = true;
   show('table');
@@ -229,7 +228,6 @@ function speak(text) {
 $('tts-toggle').addEventListener('click', () => {
   state.tts = !state.tts;
   localStorage.setItem('ogml_tts', state.tts ? '1' : '0');
-  $('tts-toggle').textContent = state.tts ? '🔊' : '🔇';
   $('tts-toggle').classList.toggle('on', state.tts);
   if (!state.tts) speechSynthesis.cancel();
 });

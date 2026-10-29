@@ -1,0 +1,108 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-29T09:40:00-04:00",
+  "title": "Design System: ogm-light",
+  "extensions": {
+    "colorMeta": {
+      "primary": { "role": "primary", "displayName": "Brass", "canonical": "#c9a35c" },
+      "bg": { "role": "neutral", "displayName": "Snuffed Lantern", "canonical": "#14120f" },
+      "panel": { "role": "neutral", "displayName": "Worn Tabletop", "canonical": "#1e1b16" },
+      "text": { "role": "neutral", "displayName": "Parchment", "canonical": "#e8e2d5" },
+      "dim": { "role": "neutral", "displayName": "Dust", "canonical": "#8d8577" },
+      "danger": { "role": "semantic", "displayName": "Ember Red", "canonical": "#b04a3a" },
+      "player-bubble": { "role": "semantic", "displayName": "Ink Blue", "canonical": "#26303f" },
+      "dm-name": { "role": "semantic", "displayName": "Moss", "canonical": "#9fb37a" }
+    },
+    "typographyMeta": {
+      "narration": { "displayName": "Narration", "purpose": "DM message bodies only — Georgia serif marks the fiction." }
+    },
+    "shadows": [
+      { "name": "drawer", "value": "-8px 0 24px rgb(0 0 0 / 0.5)", "purpose": "The only shadow: separating the sheet drawer overlay from the page." }
+    ],
+    "motion": [],
+    "breakpoints": []
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Brass go-button: Play on login, send in the composer.",
+      "html": "<button class=\"ds-btn-primary\"><i class=\"ds-ra\">⚔</i> Play</button>",
+      "css": ".ds-btn-primary { background: #c9a35c; color: #14120f; font-weight: 700; padding: 12px; border: none; border-radius: 12px; font: inherit; cursor: pointer; } .ds-btn-primary:hover { filter: brightness(1.08); } .ds-btn-primary:focus-visible { outline: 1px solid #c9a35c; outline-offset: 2px; }"
+    },
+    {
+      "name": "Text Input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Panel-filled field with a quiet seam and brass focus.",
+      "html": "<input class=\"ds-input\" placeholder=\"username\">",
+      "css": ".ds-input { background: #1e1b16; color: #e8e2d5; border: 1px solid #3a352c; border-radius: 12px; padding: 10px 12px; width: 100%; font: inherit; } .ds-input:focus { outline: 1px solid #c9a35c; }"
+    },
+    {
+      "name": "Campaign Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "Full-width table row with a brass scroll mark and dim subtitle.",
+      "html": "<button class=\"ds-card\"><span class=\"ds-mark\">🎲</span><b>The Hollow Stars</b><small> · playing Vess Anduriel — a rain-slick street</small></button>",
+      "css": ".ds-card { display: block; width: 100%; text-align: left; background: #1e1b16; border: 1px solid #2a2620; border-radius: 12px; padding: 14px; color: #e8e2d5; font: inherit; cursor: pointer; } .ds-card .ds-mark { color: #c9a35c; margin-right: 8px; } .ds-card small { color: #8d8577; display: block; margin-top: 2px; } .ds-card:hover { border-color: #3a352c; }"
+    },
+    {
+      "name": "Segmented Mode Control",
+      "kind": "chip",
+      "refersTo": "chip",
+      "description": "do / say / ooc pills; the active mode is the only brass fill.",
+      "html": "<div class=\"ds-seg\"><button class=\"ds-on\">do</button><button>say</button><button>ooc</button></div>",
+      "css": ".ds-seg { display: flex; gap: 4px; } .ds-seg button { flex: 1; padding: 7px 0; border-radius: 999px; color: #8d8577; background: #262219; font-size: 14px; border: none; font: inherit; cursor: pointer; } .ds-seg button.ds-on { background: #c9a35c; color: #14120f; font-weight: 700; }"
+    },
+    {
+      "name": "Ghost Icon Button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Bar chrome (back, TTS, sheet): quiet icon, brass when active.",
+      "html": "<button class=\"ds-icon-btn ds-on\"><svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M15.75 19.5 8.25 12l7.5-7.5\"/></svg></button>",
+      "css": ".ds-icon-btn { background: none; border: none; padding: 6px; border-radius: 8px; color: #e8e2d5; cursor: pointer; } .ds-icon-btn.ds-on { color: #c9a35c; }"
+    },
+    {
+      "name": "DM Narration Message",
+      "kind": "custom",
+      "refersTo": "transcript-message",
+      "description": "No bubble: brass label + parchment serif block. The lack of a bubble is the point.",
+      "html": "<div class=\"ds-msg\"><div class=\"ds-who\">DM</div><div class=\"ds-body\">The lantern gutters as something moves between the headstones.</div></div>",
+      "css": ".ds-msg { max-width: 92%; } .ds-msg .ds-who { font-size: 13px; color: #9fb37a; font-weight: 700; margin-bottom: 2px; } .ds-msg .ds-body { color: #e8e2d5; font-family: Georgia, serif; font-size: 15.5px; line-height: 1.5; white-space: pre-wrap; }"
+    },
+    {
+      "name": "Player Bubble",
+      "kind": "custom",
+      "refersTo": "transcript-message",
+      "description": "Right-aligned Ink Blue bubble with a tail pointing at the speaker.",
+      "html": "<div class=\"ds-msg-player\"><div class=\"ds-who\">Vess Anduriel</div><div class=\"ds-body\">I check the grave for fresh digging.</div></div>",
+      "css": ".ds-msg-player { max-width: 92%; align-self: flex-end; } .ds-msg-player .ds-who { font-size: 13px; color: #c9a35c; font-weight: 700; margin-bottom: 2px; } .ds-msg-player .ds-body { background: #26303f; border-radius: 14px 14px 4px 14px; padding: 10px 12px; white-space: pre-wrap; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "Traveler's Lamp",
+    "overview": "A player's phone at a candlelit table: the screen is a dark room, and the only light in it is warm and brass. Panels are one step off-black, text is parchment, and a single brass accent marks everything that matters. Density stays low and type stays 15–16px so it reads at arm's length in the dark. The one flourish is reserved for the fiction: DM narration is set in a serif, like a book being read aloud.",
+    "keyCharacteristics": [
+      "One accent color, used sparingly, always meaning 'active' or 'go'",
+      "Two typefaces total: system sans for mechanics, Georgia serif for narration",
+      "Flat surfaces, 1px borders, no shadows except the sheet drawer",
+      "Full-viewport screens, no scrolling chrome"
+    ],
+    "rules": [
+      { "name": "The One Lamp Rule", "body": "Brass is ≤10% of any screen. If two elements on a screen are gold, one of them is lying.", "section": "colors" },
+      { "name": "The Serif Is The DM Rule", "body": "Georgia appears only on DM narration. Never for buttons or controls.", "section": "typography" },
+      { "name": "The Drawer Casts the Only Shadow Rule", "body": "If a new surface casts a shadow, it had better be an overlay.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do use Brass for exactly one 'active/go' element per state.",
+      "Do set DM narration in Georgia and player content in system sans.",
+      "Do use Heroicons (outline) for UI chrome and RPG Awesome for game-flavored marks."
+    ],
+    "donts": [
+      "Don't introduce a second accent or a cool background color.",
+      "Don't bubble the DM's messages — the plain serif block is the DM.",
+      "Don't add shadows outside overlays."
+    ]
+  }
+}
