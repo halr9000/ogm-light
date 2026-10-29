@@ -27,7 +27,7 @@ async function api(path, opts = {}) {
     headers: { 'Content-Type': 'application/json', ...(opts.headers || {}) },
   });
   const data = await res.json().catch(() => ({}));
-  if (res.status === 401) { show('login'); throw new Error(data.error || 'not signed in'); }
+  if (res.status === 401) { show('login'); throw new Error(`${data.error || 'not signed in'} (${opts.method || 'GET'} ${path})`); }
   if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
   return data;
 }
@@ -54,7 +54,8 @@ $('login-form').addEventListener('submit', async (e) => {
       }),
     });
     $('login-pass').value = '';
-    home();
+    try { await home(); }
+    catch (e) { $('login-error').textContent = 'login ok but ' + e.message; $('login-error').hidden = false; }
   } catch (err) {
     $('login-error').textContent = err.message;
     $('login-error').hidden = false;
@@ -90,6 +91,7 @@ async function home() {
     }
   } catch (err) {
     list.innerHTML = `<p class="error">${esc(err.message)}</p>`;
+    throw err;
   }
 }
 
@@ -122,9 +124,9 @@ async function openTable(c) {
   }
 }
 
-$('back').addEventListener('click', () => {
+$('back').addEventListener('click', async () => {
   if (state.es) { state.es.close(); state.es = null; }
-  home();
+  try { await home(); } catch {}
 });
 
 function connectStream() {
