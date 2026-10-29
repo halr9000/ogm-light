@@ -32,14 +32,26 @@ Environment variables, all optional:
 https URLs work. The L stands for "light": the `OGML_` prefix keeps these
 settings away from anything OGM itself defines.
 
+## Screenshots
+
+The table and the sheet, at phone size:
+
+![The table, mid-scene](docs/screenshot-main.png)
+
+![The character sheet](docs/screenshot-sheet.png)
+
 ## What's in the box
 
 The transcript shows the latest 30 messages and loads older history on
-demand. Live updates arrive over SSE and survive reconnects through
-Last-Event-ID replay. The composer has do/say/ooc modes; Enter sends and
-Shift+Enter makes a newline. The sheet drawer shows HP, class, level, and
-AC. A toggle makes the browser read DM narration aloud with speechSynthesis,
-so there is no server TTS to babysit.
+on demand. Live updates arrive over SSE and survive reconnects through
+Last-Event-ID replay. The composer has do/say/ooc modes, plus a hidden
+fourth control for whispering privately to the GM. Enter sends and
+Shift+Enter makes a newline. The sheet drawer reads the real OGM sheet:
+vitals, ability scores, proficiencies, spell slots, features, condition,
+equipment, and notes. Narration is a two-way setting — on demand, or
+automatic — and prefers the server's rendered takes, falling back to the
+browser's own voice. Every hearable reply, whispers included, carries its
+own play button.
 
 If the phone sleeps for an hour, the app notices when it wakes and fetches a
 fresh page of history instead of replaying a day of SSE events.
@@ -57,12 +69,14 @@ and back on the way in, so a stale cookie left in some device's jar by an
 old build can never shadow a live session.
 
 `public/` holds `index.html`, `app.js` (vanilla), and `styles.css`, plus
-vendored icons: RPG Awesome for the game-flavored marks (swords, scrolls,
-speech) and Heroicons inlined as SVG for the UI chrome. No CDN calls; the
-app works with the network cable pulled.
+vendored assets: RPG Awesome for the game-flavored marks (swords, scrolls,
+speech), Heroicons inlined as SVG for the UI chrome, and the three
+narration faces (Lora, Cormorant Garamond, IM Fell English) as woff2 under
+`vendor/fonts/`. No CDN calls; the app works with the network cable pulled.
 
 ## Design notes
 
 `PRODUCT.md` and `DESIGN.md` sit at the repo root for the impeccable design
-tooling. The look is "Traveler's Lamp": a dark room, one brass accent, and
-a Georgia serif reserved for the DM's voice.
+tooling. The look is "Traveler's Lamp": a dark room, one brass accent, and a
+serif reserved for the DM's voice — Lora by default, with Cormorant Garamond
+and IM Fell English selectable in settings.

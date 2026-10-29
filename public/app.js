@@ -4,11 +4,11 @@
 
 const $ = (id) => document.getElementById(id);
 const screens = { login: $('login'), home: $('home'), table: $('table') };
-// narration mode: 'off' | 'tap' (per-line play buttons) | 'auto' (follows the DM).
-// Migrates the old on/off toggle ('ogml_tts').
+// narration mode: 'tap' (per-line play buttons) | 'auto' (follows the DM).
+// Migrates the old on/off toggle ('ogml_tts'); 'off' folded into 'tap'.
 function narrateMode() {
   const saved = localStorage.getItem('ogml_narrate');
-  if (saved === 'off' || saved === 'tap' || saved === 'auto') return saved;
+  if (saved === 'tap' || saved === 'auto') return saved;
   return localStorage.getItem('ogml_tts') === '1' ? 'auto' : 'tap';
 }
 let state = {
@@ -744,6 +744,7 @@ function applyTextScale(v, save = true) {
   document.documentElement.style.setProperty('--textscale', textScale);
   if (save) {
     try { localStorage.setItem('ogml_textscale', String(textScale)); } catch {}
+    flashSettings(TEXT_SIZES.find(t => t.scale === textScale).label + ' text.');
   }
   for (const b of document.querySelectorAll('#textsize-opts .size-opt'))
     b.setAttribute('aria-pressed', String(clampScale(b.dataset.scale) === textScale));
@@ -766,18 +767,54 @@ function applyTextScale(v, save = true) {
 
 applyTextScale(textScale, false); // sync pressed states with the pre-paint value
 
-/* ---------- settings: narration (off / on demand / auto) ---------- */
+/* ---------- settings: narration typeface (Lora / Cormorant / IM Fell) ---------- */
+
+// labels render in their own face; ids map to html[data-serif]
+const NARRATE_FACES = [
+  { id: 'lora', label: 'Lora', css: "'Lora', Georgia, serif" },
+  { id: 'cormorant', label: 'Cormorant', css: "'Cormorant Garamond', Georgia, serif" },
+  { id: 'fell', label: 'IM Fell', css: "'IM Fell English', Georgia, serif" },
+];
+function narrateFace() {
+  const f = localStorage.getItem('ogml_face');
+  return NARRATE_FACES.some(x => x.id === f) ? f : 'lora';
+}
+function applyFace(id, save = true) {
+  if (id === 'lora') delete document.documentElement.dataset.serif;
+  else document.documentElement.dataset.serif = id;
+  if (save) {
+    try { localStorage.setItem('ogml_face', id); } catch {}
+    flashSettings(NARRATE_FACES.find(x => x.id === id).label + ' type.');
+  }
+  for (const b of document.querySelectorAll('#face-opts .face-opt'))
+    b.setAttribute('aria-pressed', String(b.dataset.face === narrateFace()));
+}
+
+(function buildFaces() {
+  const wrap = $('face-opts');
+  for (const { id, label, css } of NARRATE_FACES) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'face-opt';
+    b.dataset.face = id;
+    b.style.fontFamily = css;
+    b.textContent = label;
+    b.addEventListener('click', () => applyFace(id));
+    wrap.appendChild(b);
+  }
+  applyFace(narrateFace(), false); // sync pressed states with the pre-paint value
+})();
+
+/* ---------- settings: narration (on demand / auto) ---------- */
 
 const NARRATE_MODES = [
-  { id: 'off', label: 'Off' },
-  { id: 'tap', label: 'On demand' },
-  { id: 'auto', label: 'Auto' },
+  { id: 'tap', label: 'On demand narration' },
+  { id: 'auto', label: 'Automatic narration' },
 ];
 // one line of flash on change, then gone — the labels stay in the buttons
-const NARRATE_FLASH = { off: 'Silent.', tap: 'Tap ▶ on any line.', auto: 'Plays with the DM.' };
+const NARRATE_FLASH = { tap: 'On demand narration.', auto: 'Automatic narration.' };
 
 function syncNarrateOpts() {
-  document.body.classList.toggle('narrate-off', state.narrate === 'off');
   for (const b of document.querySelectorAll('#narrate-opts .narrate-opt'))
     b.setAttribute('aria-pressed', String(b.dataset.mode === state.narrate));
 }
@@ -803,13 +840,12 @@ function setNarrate(mode) {
     localStorage.removeItem('ogml_tts');
   } catch {}
   syncNarrateOpts();
-  if (mode === 'off') stopAudio(false);
-  flashNarrate(NARRATE_FLASH[mode]);
+  flashSettings(NARRATE_FLASH[mode]);
 }
 
 let flashTimer = null;
-function flashNarrate(text) {
-  const el = $('narrate-flash');
+function flashSettings(text) {
+  const el = $('settings-flash');
   el.textContent = text;
   el.classList.add('show');
   clearTimeout(flashTimer);

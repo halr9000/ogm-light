@@ -21,12 +21,12 @@ typography:
     fontWeight: 400
     lineHeight: "1.5"
   narration:
-    fontFamily: "Georgia, 'Iowan Old Style', 'Palatino Linotype', 'Book Antiqua', serif"
+    fontFamily: "'Lora', Georgia, 'Iowan Old Style', 'Palatino Linotype', 'Book Antiqua', serif"
     fontSize: "15.5px"
     fontWeight: 400
     lineHeight: "1.5"
   title:
-    fontFamily: "Georgia, 'Iowan Old Style', 'Palatino Linotype', 'Book Antiqua', serif"
+    fontFamily: "'Lora', Georgia, 'Iowan Old Style', 'Palatino Linotype', 'Book Antiqua', serif"
     fontSize: "17px"
     fontWeight: 600
     lineHeight: "1.2"
@@ -96,7 +96,8 @@ serif, like a book being read aloud. Everything mechanical stays system UI.
 
 **Key Characteristics:**
 - One accent color, used sparingly, always meaning "active" or "go"
-- Two typefaces total: system sans for mechanics, Georgia serif for narration
+- Two typefaces total: system sans for mechanics, a serif for narration
+  (Lora default; Cormorant Garamond and IM Fell English selectable)
 - Flat surfaces, 1px borders, no shadows except the sheet drawer
 - Full-viewport screens (`100dvh`), no scrolling chrome
 
@@ -131,21 +132,23 @@ screen are gold, one of them is lying.
 ## Typography
 
 **Body Font:** system-ui stack (no webfont)
-**Narration Font:** Georgia, serif
+**Narration Font:** selectable — Lora (default), Cormorant Garamond, or
+IM Fell English; all three vendored as woff2, no CDN. Georgia remains the
+fallback when none is chosen or loading.
 
 **Character:** The system sans keeps the chrome invisible and native-feeling;
-Georgia marks the DM's voice as the fiction, not the interface.
+the narration serif marks the DM's voice as the fiction, not the interface.
 
 ### Hierarchy
 - **Title** (600, 17px, sans): screen bar titles (Tables, table name).
 - **Display** (600, default-size, letterspaced, sans, Brass): login `h1` only.
 - **Body** (400, 16px, 1.5): everything interactive and player-written.
-- **Narration** (400, 15.5px, Georgia): DM message bodies.
+- **Narration** (400, 15.5px, narration serif): DM message bodies.
 - **Label** (700, 13px, sans): message author names; Brass for DM/players,
   Dust for OOC.
 
 ### Named Rules
-**The Serif Is The DM Rule.** Georgia appears only on DM narration and the
+**The Serif Is The DM Rule.** The narration serif appears only on DM narration and the
 sheet/branding flourishes. Never for buttons or controls.
 
 ## Layout
@@ -206,12 +209,12 @@ are always 1px seams, never 2px+ outlines; focus is a 1px Brass outline.
   labels in Dust 600.
 
 ### Narration (settings flyout)
-- **Narration pills:** Off / On demand / Auto — same segmented style as the
-  composer pills, stacked vertically. One flash line appears briefly on
-  change, then fades; nothing persists.
+- **Narration pills:** On demand narration / Automatic narration — same
+  segmented style as the composer pills, stacked vertically. One flash
+  line appears briefly on change, then fades; nothing persists.
 - **Play (per line):** small Brass ▶ beside the speaker's name on hearable
   replies (DM narration, GM whisper replies). While playing it shows a
-  pause glyph; Off mode hides them entirely.
+  pause glyph.
 
 ### Playback Bar
 - Slides in above the composer only while a track plays: play/pause toggle

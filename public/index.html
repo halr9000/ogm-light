@@ -5,10 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>ogm-light</title>
 <script>
-// apply the saved text size before first paint (clamped to >= 1: text never shrinks)
+// apply saved settings before first paint (text size clamped to >= 1: text never shrinks)
 try {
   var v = Math.min(1.75, Math.max(1, parseFloat(localStorage.getItem('ogml_textscale')) || 1));
   document.documentElement.style.setProperty('--textscale', v);
+  var f = localStorage.getItem('ogml_face');
+  if (f === 'cormorant' || f === 'fell') document.documentElement.dataset.serif = f;
 } catch (e) {}
 </script>
 <link rel="icon" type="image/svg+xml" href="favicon.svg?v=1">
@@ -16,7 +18,7 @@ try {
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=1">
 <meta name="theme-color" content="#181420">
 <link rel="stylesheet" href="vendor/rpg-awesome/css/rpg-awesome.min.css?v=1">
-<link rel="stylesheet" href="styles.css?v=11">
+<link rel="stylesheet" href="styles.css?v=13">
 </head>
 <body>
   <!-- login -->
@@ -79,12 +81,16 @@ try {
       <div id="textsize-opts" role="group" aria-label="Text size"></div>
     </section>
     <section>
+      <h4>Narration typeface</h4>
+      <div id="face-opts" role="group" aria-label="Narration typeface"></div>
+    </section>
+    <section>
       <h4>Narration</h4>
       <div id="narrate-opts" role="group" aria-label="Narration"></div>
-      <p id="narrate-flash" aria-live="polite"></p>
     </section>
+    <p id="settings-flash" aria-live="polite"></p>
   </aside>
 
-  <script src="app.js?v=10"></script>
+  <script src="app.js?v=13"></script>
 </body>
 </html>
