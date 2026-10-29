@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-29T09:40:00-04:00",
+  "generatedAt": "2026-10-29T10:06:04-04:00",
   "title": "Design System: ogm-light",
   "extensions": {
     "colorMeta": {
@@ -59,7 +59,7 @@
       "name": "Ghost Icon Button",
       "kind": "button",
       "refersTo": "button-ghost",
-      "description": "Bar chrome (back, TTS, sheet): quiet icon, brass when active.",
+      "description": "Bar chrome (back, sheet): quiet icon, brass when active.",
       "html": "<button class=\"ds-icon-btn ds-on\"><svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M15.75 19.5 8.25 12l7.5-7.5\"/></svg></button>",
       "css": ".ds-icon-btn { background: none; border: none; padding: 6px; border-radius: 8px; color: #e8e2d5; cursor: pointer; } .ds-icon-btn.ds-on { color: #c9a35c; }"
     },
@@ -78,6 +78,30 @@
       "description": "Right-aligned Ink Blue bubble with a tail pointing at the speaker.",
       "html": "<div class=\"ds-msg-player\"><div class=\"ds-who\">Vess Anduriel</div><div class=\"ds-body\">I check the grave for fresh digging.</div></div>",
       "css": ".ds-msg-player { max-width: 92%; align-self: flex-end; } .ds-msg-player .ds-who { font-size: 13px; color: #c9a35c; font-weight: 700; margin-bottom: 2px; } .ds-msg-player .ds-body { background: #26303f; border-radius: 14px 14px 4px 14px; padding: 10px 12px; white-space: pre-wrap; }"
+    },
+    {
+      "name": "Narration Mode Pills",
+      "kind": "chip",
+      "refersTo": "chip",
+      "description": "Off / On demand / Auto in the settings flyout; one brief flash line on change, nothing persists.",
+      "html": "<div class=\"ds-narr\"><button>Off</button><button class=\"ds-on\">On demand</button><button>Auto</button></div>",
+      "css": ".ds-narr { display: flex; gap: 4px; } .ds-narr button { flex: 1; padding: 7px 0; border-radius: 999px; color: #8d8577; background: #262219; font-size: 14px; border: none; font: inherit; cursor: pointer; } .ds-narr button.ds-on { background: #c9a35c; color: #14120f; font-weight: 700; }"
+    },
+    {
+      "name": "Per-Line Play Button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Small brass ▶ beside the speaker's name on hearable replies; pause glyph while playing, hidden entirely in Off mode.",
+      "html": "<div class=\"ds-play-row\"><span class=\"ds-who\">DM</span><button class=\"ds-play\"><svg width=\"12\" height=\"12\" viewBox=\"0 0 24 24\" fill=\"currentColor\"><path d=\"M8 5v14l11-7z\"/></svg></button></div>",
+      "css": ".ds-play-row { display: flex; align-items: center; gap: 6px; } .ds-play-row .ds-who { font-size: 13px; color: #9fb37a; font-weight: 700; } .ds-play { background: none; border: none; color: #c9a35c; padding: 2px; cursor: pointer; border-radius: 6px; } .ds-play:focus-visible { outline: 1px solid #c9a35c; }"
+    },
+    {
+      "name": "Playback Bar",
+      "kind": "custom",
+      "refersTo": "playbar",
+      "description": "Appears above the composer only while a track plays: play/pause plus a bare seek slider; fades out at track end.",
+      "html": "<div class=\"ds-playbar\"><button>⏸</button><input type=\"range\" min=\"0\" max=\"1000\" value=\"160\"></div>",
+      "css": ".ds-playbar { display: flex; align-items: center; gap: 10px; background: #1e1b16; border-top: 1px solid #2a2620; padding: 10px 14px; } .ds-playbar button { background: none; border: none; color: #e8e2d5; cursor: pointer; } .ds-playbar input[type=range] { flex: 1; accent-color: #c9a35c; }"
     }
   ],
   "narrative": {

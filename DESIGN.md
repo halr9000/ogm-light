@@ -205,6 +205,18 @@ are always 1px seams, never 2px+ outlines; focus is a 1px Brass outline.
   system. Brass HP readout at 26px/700; key-value rows separated by seams,
   labels in Dust 600.
 
+### Narration (settings flyout)
+- **Narration pills:** Off / On demand / Auto — same segmented style as the
+  composer pills, stacked vertically. One flash line appears briefly on
+  change, then fades; nothing persists.
+- **Play (per line):** small Brass ▶ beside the speaker's name on hearable
+  replies (DM narration, GM whisper replies). While playing it shows a
+  pause glyph; Off mode hides them entirely.
+
+### Playback Bar
+- Slides in above the composer only while a track plays: play/pause toggle
+  plus a bare seek slider (no time readouts). Fades out at track end.
+
 ## Do's and Don'ts
 
 ### Do:
