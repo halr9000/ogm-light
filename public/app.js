@@ -535,7 +535,7 @@ function applyTextScale(v, save = true) {
     b.dataset.scale = scale;
     b.innerHTML = // esc() not needed: only literals below reach innerHTML
       `<span class="sample" style="font-size:calc(1rem * ${scale})">A</span>` +
-      `<span class="lbl">${label}<small>${Math.round(16 * scale)} px and up</small></span>`;
+      `<span class="lbl">${label}</span>`;
     b.addEventListener('click', () => applyTextScale(scale));
     wrap.appendChild(b);
   }
