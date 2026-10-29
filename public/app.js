@@ -4,6 +4,13 @@
 
 const $ = (id) => document.getElementById(id);
 const screens = { login: $('login'), home: $('home'), table: $('table') };
+// narration mode: 'off' | 'tap' (per-line play buttons) | 'auto' (follows the DM).
+// Migrates the old on/off toggle ('ogml_tts').
+function narrateMode() {
+  const saved = localStorage.getItem('ogml_narrate');
+  if (saved === 'off' || saved === 'tap' || saved === 'auto') return saved;
+  return localStorage.getItem('ogml_tts') === '1' ? 'auto' : 'tap';
+}
 let state = {
   campaignId: null,
   campaignTitle: '',
@@ -13,10 +20,12 @@ let state = {
   lastSeq: 0,
   es: null,
   kind: 'do',
-  tts: localStorage.getItem('ogml_tts') === '1',
+  narrate: narrateMode(),
   sheet: null,
   narration: {},       // messageId -> same-origin mp3 url (server-rendered takes)
-  audio: null,         // currently playing narration
+  audio: null,         // currently playing audio element
+  playBtn: null,       // play button of the line now sounding
+  pendingAuto: null,   // dm passage waiting for its take (auto mode)
   whisperIds: new Set(),
 };
 
@@ -109,7 +118,6 @@ async function openTable(c) {
   state.sheet = null;
   sheetError = '';
   $('table-title').textContent = state.campaignTitle;
-  $('tts-toggle').classList.toggle('on', state.tts);
   $('sheet').hidden = true;
   show('table');
   $('transcript').innerHTML = '';
@@ -158,6 +166,21 @@ function connectStream() {
   };
   for (const type of ['message_added', 'message_updated']) es.addEventListener(type, onMessage);
   es.addEventListener('whisper_activity', () => { refreshWhispers(); });
+  // a freshly rendered take just landed: file it, and sound it if auto mode
+  // was waiting for exactly this passage
+  es.addEventListener('tts_ready', (e) => {
+    try {
+      const p = JSON.parse(e.data);
+      if (p.messageId && p.url) {
+        state.narration[p.messageId] = p.url;
+        if (state.pendingAuto === p.messageId && state.narrate === 'auto') {
+          state.pendingAuto = null;
+          const m = state.messages.find((x) => x.id === p.messageId);
+          if (m) playMessage(m);
+        }
+      }
+    } catch {}
+  });
   // The server fell too far behind to replay: rebuild from a fresh snapshot.
   es.addEventListener('resync', () => { openTable({ id: state.campaignId, title: state.campaignTitle }); });
   es.onmessage = onMessage;
@@ -218,15 +241,16 @@ function appendMsg(div, m) {
   }
 }
 
-function renderMessage(m) {
+function renderMessage(m, live = false) {
   const div = document.createElement('div');
   div.className = 'msg ' + m.authorType + (m.kind === 'ooc' ? ' ooc' : '');
   const who = whoFor(m);
   const body = m.authorType === 'dm' ? richBody(m.content) : esc(m.content);
-  div.innerHTML = (who ? `<div class="who">${esc(who)}</div>` : '') +
+  div.innerHTML = (who ? `<div class="who"><span>${esc(who)}</span></div>` : '') +
     `<div class="body">${body}</div>`;
+  if (m.authorType === 'dm') addPlayBtn(div, m);
   appendMsg(div, m);
-  if (m.authorType === 'dm' && state.tts) speak(m);
+  if (m.authorType === 'dm' && state.narrate === 'auto' && live) autoPlay(m);
 }
 
 // The private line with the GM, set apart from table talk.
@@ -236,7 +260,8 @@ function renderWhisper(w) {
   div.className = 'msg whisper ' + (w.direction === 'to_player' ? 'from-dm' : 'to-dm');
   const who = w.direction === 'to_player' ? 'GM' : (state.names[w.characterId] || 'You');
   const body = w.direction === 'to_player' ? richBody(w.content) : esc(w.content);
-  div.innerHTML = `<div class="who">${esc(who)}</div><div class="body">${body}</div>`;
+  div.innerHTML = `<div class="who"><span>${esc(who)}</span></div><div class="body">${body}</div>`;
+  if (w.direction === 'to_player') addPlayBtn(div, w);
   appendMsg(div, { authorType: 'player' });
 }
 
@@ -304,20 +329,89 @@ $('action-text').addEventListener('keydown', (e) => {
   if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); $('send').click(); }
 });
 
-/* ---------- TTS ---------- */
+/* ---------- narration audio ---------- */
 
-// Prefer the server's rendered take for this passage; fall back to the
-// browser voice only for passages the server never recorded.
-function speak(m) {
-  stopAudio();
-  const url = state.narration[m.id];
-  if (url) {
-    const a = new Audio(url);
-    state.audio = a;
-    a.play().catch(() => { state.audio = null; synthSpeak(m.content); });
-    return;
+// every reply the player can hear gets a small play button, GM whispers included
+const PLAY_SVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M9.5 5.2v13.6a.75.75 0 0 0 1.16.63l10.2-6.8a.75.75 0 0 0 0-1.26l-10.2-6.8a.75.75 0 0 0-1.16.63Z"/></svg>';
+const PAUSE_SVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7.5 5h3.4v14H7.5zM13.1 5h3.4v14h-3.4z"/></svg>';
+
+function addPlayBtn(div, m) {
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.className = 'play-btn';
+  b.dataset.mid = m.id;
+  b.setAttribute('aria-label', 'Play narration');
+  b.innerHTML = PLAY_SVG;
+  b.addEventListener('click', () => playMessage(m, b));
+  div.querySelector('.who').appendChild(b);
+}
+
+// one line at a time: stop whatever is sounding, then play this reply —
+// the server's take when one exists, a fresh render for DM prose on demand,
+// the browser voice when the server has nothing for the line.
+async function playMessage(m, btn) {
+  if (state.playBtn === btn) { stopAudio(true); return; }
+  stopAudio(false);
+  state.playBtn = btn || null;
+  if (btn) btn.classList.add('on');
+  let url = state.narration[m.id];
+  if (!url && m.authorType === 'dm') {
+    if (btn) btn.classList.add('busy');
+    try {
+      const r = await api(`/api/campaigns/${state.campaignId}/messages/${m.id}/narrate`, { method: 'POST' });
+      url = r.url;
+      state.narration[m.id] = url;
+    } catch { url = null; }
+    if (btn) btn.classList.remove('busy');
   }
-  synthSpeak(m.content);
+  if (url) playAudio(url, m);
+  else synthSpeak(m.content);
+}
+
+function playAudio(url, m) {
+  const a = new Audio(url);
+  state.audio = a;
+  showPlaybar();
+  a.addEventListener('timeupdate', () => {
+    if (!seeking && a.duration) {
+      $('pb-seek').value = String(Math.round((a.currentTime / a.duration) * 1000));
+    }
+  });
+  a.addEventListener('ended', finishTrack);
+  a.addEventListener('error', () => { finishTrack(); synthSpeak(m.content); });
+  a.play().catch(() => { finishTrack(); synthSpeak(m.content); });
+}
+
+function finishTrack() {
+  // the controls fade once the line is done; nothing lingers
+  const pb = $('playbar');
+  pb.classList.add('hide');
+  setTimeout(() => { pb.hidden = true; }, 600);
+  clearPlaying();
+  state.audio = null;
+}
+
+function showPlaybar() {
+  const pb = $('playbar');
+  pb.hidden = false;
+  pb.classList.remove('hide');
+  $('pb-seek').value = '0';
+  setPbIcon(true);
+}
+
+function clearPlaying() {
+  if (state.playBtn) { state.playBtn.classList.remove('on', 'busy'); state.playBtn = null; }
+}
+
+function stopAudio(hideBar) {
+  if (state.audio) { state.audio.pause(); state.audio = null; }
+  if ('speechSynthesis' in window) speechSynthesis.cancel();
+  clearPlaying();
+  if (hideBar) {
+    const pb = $('playbar');
+    pb.classList.add('hide');
+    setTimeout(() => { pb.hidden = true; }, 600);
+  }
 }
 
 function synthSpeak(text) {
@@ -329,16 +423,31 @@ function synthSpeak(text) {
   speechSynthesis.speak(u);
 }
 
-function stopAudio() {
-  if (state.audio) { state.audio.pause(); state.audio = null; }
-  if ('speechSynthesis' in window) speechSynthesis.cancel();
+// auto: sound each new DM passage as its take lands
+function autoPlay(m) {
+  if (state.narration[m.id]) playMessage(m);
+  else state.pendingAuto = m.id;
 }
 
-$('tts-toggle').addEventListener('click', () => {
-  state.tts = !state.tts;
-  localStorage.setItem('ogml_tts', state.tts ? '1' : '0');
-  $('tts-toggle').classList.toggle('on', state.tts);
-  if (!state.tts) stopAudio();
+/* playbar: pause and seek, visible only while a track plays */
+
+let seeking = false;
+function setPbIcon(playing) {
+  $('pb-toggle').innerHTML = playing ? PAUSE_SVG : PLAY_SVG;
+  $('pb-toggle').setAttribute('aria-label', playing ? 'Pause' : 'Play');
+}
+$('pb-toggle').addEventListener('click', () => {
+  const a = state.audio;
+  if (!a) return;
+  if (a.paused) { a.play(); setPbIcon(true); }
+  else { a.pause(); setPbIcon(false); }
+});
+const seek = $('pb-seek');
+seek.addEventListener('pointerdown', () => { seeking = true; });
+seek.addEventListener('pointerup', () => { seeking = false; });
+seek.addEventListener('input', () => {
+  const a = state.audio;
+  if (a && a.duration) a.currentTime = (Number(seek.value) / 1000) * a.duration;
 });
 
 /* ---------- sheet ---------- */
@@ -656,6 +765,56 @@ function applyTextScale(v, save = true) {
 })();
 
 applyTextScale(textScale, false); // sync pressed states with the pre-paint value
+
+/* ---------- settings: narration (off / on demand / auto) ---------- */
+
+const NARRATE_MODES = [
+  { id: 'off', label: 'Off' },
+  { id: 'tap', label: 'On demand' },
+  { id: 'auto', label: 'Auto' },
+];
+// one line of flash on change, then gone — the labels stay in the buttons
+const NARRATE_FLASH = { off: 'Silent.', tap: 'Tap ▶ on any line.', auto: 'Plays with the DM.' };
+
+function syncNarrateOpts() {
+  document.body.classList.toggle('narrate-off', state.narrate === 'off');
+  for (const b of document.querySelectorAll('#narrate-opts .narrate-opt'))
+    b.setAttribute('aria-pressed', String(b.dataset.mode === state.narrate));
+}
+
+(function buildNarrate() {
+  const wrap = $('narrate-opts');
+  for (const { id, label } of NARRATE_MODES) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'narrate-opt';
+    b.dataset.mode = id;
+    b.textContent = label;
+    b.addEventListener('click', () => setNarrate(id));
+    wrap.appendChild(b);
+  }
+  syncNarrateOpts();
+})();
+
+function setNarrate(mode) {
+  state.narrate = mode;
+  try {
+    localStorage.setItem('ogml_narrate', mode);
+    localStorage.removeItem('ogml_tts');
+  } catch {}
+  syncNarrateOpts();
+  if (mode === 'off') stopAudio(false);
+  flashNarrate(NARRATE_FLASH[mode]);
+}
+
+let flashTimer = null;
+function flashNarrate(text) {
+  const el = $('narrate-flash');
+  el.textContent = text;
+  el.classList.add('show');
+  clearTimeout(flashTimer);
+  flashTimer = setTimeout(() => el.classList.remove('show'), 1800);
+}
 
 function openSettings() {
   const el = $('settings');
