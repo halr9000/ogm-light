@@ -120,6 +120,7 @@ async function openTable(c) {
   $('table-title').textContent = state.campaignTitle;
   $('sheet').hidden = true;
   show('table');
+  restoreDraft();
   $('transcript').innerHTML = '';
   try {
     // Snapshot, private line with the GM, and narration takes in one round.
@@ -302,6 +303,7 @@ function selectKind(btn) {
   } else {
     collapseSeg();
   }
+  saveDraft();
 }
 
 document.querySelectorAll('#composer .seg-track button').forEach((b) => {
@@ -338,6 +340,7 @@ $('composer').addEventListener('submit', async (e) => {
     }
     $('action-text').value = '';
     autosize();
+    try { localStorage.removeItem(`ogml_draft_${state.campaignId}`); } catch {}
     $('new-msgs').hidden = true;
     $('transcript').scrollTop = $('transcript').scrollHeight;
   } catch (err) {
@@ -362,6 +365,30 @@ function autosize() {
   ta.style.overflowY = ta.scrollHeight > max ? 'auto' : 'hidden';
 }
 ta.addEventListener('input', autosize);
+
+// draft: per-campaign, survives reloads and table switches
+function saveDraft() {
+  if (!state.campaignId) return;
+  try { localStorage.setItem(`ogml_draft_${state.campaignId}`, JSON.stringify({ text: ta.value, kind: state.kind })); } catch {}
+}
+function restoreDraft() {
+  ta.value = '';
+  autosize();
+  applyKind('do');
+  let d = null;
+  try { d = JSON.parse(localStorage.getItem(`ogml_draft_${state.campaignId}`) || 'null'); } catch {}
+  if (!d || typeof d.text !== 'string') return;
+  ta.value = d.text;
+  autosize();
+  if (d.kind && d.kind !== 'do') applyKind(d.kind);
+}
+function applyKind(kind) {
+  state.kind = kind;
+  document.querySelectorAll('#composer .seg-track button').forEach((x) => x.classList.toggle('on', x.dataset.kind === kind));
+  ta.placeholder = PLACEHOLDERS[kind] || PLACEHOLDERS.do;
+  seg.classList.toggle('expanded', kind === 'gm');
+}
+ta.addEventListener('input', saveDraft);
 
 /* ---------- narration audio ---------- */
 
