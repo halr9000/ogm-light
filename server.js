@@ -7,31 +7,24 @@ const fs = require('fs');
 const path = require('path');
 
 // Configuration (env, all optional):
-//   OGML_PORT           port this server listens on            (default 3222)
-//   OGML_HOST           bind address                           (default 0.0.0.0)
-//   OGML_UPSTREAM       full base URL of the OGM service to proxy to,
-//                       e.g. http://192.168.1.10:3005 or https://ogm.internal
-//   OGML_UPSTREAM_HOST  host-only alternative to OGML_UPSTREAM (default 127.0.0.1)
-//   OGML_UPSTREAM_PORT  port-only alternative to OGML_UPSTREAM (default 3005)
-// OGML_UPSTREAM wins over HOST/PORT when set. The L is for "light" — this is
-// the lightweight player client, and OGML_* keeps its settings namespaced
-// away from anything OGM itself defines.
+//   OGML_PORT     port this server listens on            (default 3222)
+//   OGML_HOST     bind address                           (default 0.0.0.0)
+//   OGML_OGM_URL  base URL of the OGM service to proxy to,
+//                 e.g. http://192.168.1.10:3005 or https://ogm.internal
+//                 (default http://127.0.0.1:3005)
+// The L is for "light" — this is the lightweight player client, and OGML_*
+// keeps its settings namespaced away from anything OGM itself defines.
 const PORT = Number(process.env.OGML_PORT || 3222);
 const HOST = process.env.OGML_HOST || '0.0.0.0';
-let UPSTREAM;
+let OGM_URL;
 try {
-  UPSTREAM = new URL(
-    process.env.OGML_UPSTREAM ||
-      `http://${process.env.OGML_UPSTREAM_HOST || process.env.OGML_TARGET || '127.0.0.1'}:${
-        Number(process.env.OGML_UPSTREAM_PORT || process.env.OGML_TARGET_PORT || 3005)
-      }`,
-  );
+  OGM_URL = new URL(process.env.OGML_OGM_URL || 'http://127.0.0.1:3005');
 } catch (e) {
-  console.error(`ogm-light: invalid OGML_UPSTREAM: ${e.message}`);
+  console.error(`ogm-light: invalid OGML_OGM_URL: ${e.message}`);
   process.exit(2);
 }
-const TARGET_HOST = UPSTREAM.hostname;
-const TARGET_PORT = Number(UPSTREAM.port) || (UPSTREAM.protocol === 'https:' ? 443 : 80);
+const OGM_HOST = OGM_URL.hostname;
+const OGM_PORT = Number(OGM_URL.port) || (OGM_URL.protocol === 'https:' ? 443 : 80);
 const PUBLIC = path.join(__dirname, 'public');
 
 const TYPES = {
@@ -86,14 +79,14 @@ const server = http.createServer((req, res) => {
   const url = new URL(req.url, `http://${req.headers.host}`);
   if (!url.pathname.startsWith('/api/')) return serveStatic(req, res);
 
-  const proxied = (UPSTREAM.protocol === 'https:' ? https : http).request(
+  const proxied = (OGM_URL.protocol === 'https:' ? https : http).request(
     {
-      host: TARGET_HOST,
-      port: TARGET_PORT,
+      host: OGM_HOST,
+      port: OGM_PORT,
       path: url.pathname + url.search,
       method: req.method,
       headers: (() => {
-        const h = { ...req.headers, host: `${TARGET_HOST}:${TARGET_PORT}` };
+        const h = { ...req.headers, host: `${OGM_HOST}:${OGM_PORT}` };
         const rc = rewriteRequestCookies(req.headers.cookie);
         if (rc) h.cookie = rc; else delete h.cookie;
         return h;
@@ -117,5 +110,5 @@ const server = http.createServer((req, res) => {
 });
 
 server.listen(PORT, HOST, () => {
-  console.log(`ogm-light: http://${HOST}:${PORT}  ->  ${UPSTREAM.origin}`);
+  console.log(`ogm-light: http://${HOST}:${PORT}  ->  ${OGM_URL.origin}`);
 });

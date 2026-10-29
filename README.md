@@ -27,12 +27,9 @@ Environment variables, all optional:
 |---|---|---|
 | `OGML_PORT` | 3222 | port this server listens on |
 | `OGML_HOST` | 0.0.0.0 | bind address |
-| `OGML_UPSTREAM` | none | full base URL of the OGM service to proxy to, e.g. `http://192.168.1.10:3005` or `https://ogm.internal` |
-| `OGML_UPSTREAM_HOST` | 127.0.0.1 | host-only alternative to `OGML_UPSTREAM` |
-| `OGML_UPSTREAM_PORT` | 3005 | port-only alternative |
+| `OGML_OGM_URL` | `http://127.0.0.1:3005` | base URL of the OGM service to proxy to, e.g. `http://192.168.1.10:3005` or `https://ogm.internal` |
 
-`OGML_UPSTREAM` wins over the host/port pair when both are set, and https
-upstreams work. The L stands for "light": the `OGML_` prefix keeps these
+https URLs work. The L stands for "light": the `OGML_` prefix keeps these
 settings away from anything OGM itself defines.
 
 ## What's in the box
