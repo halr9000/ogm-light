@@ -151,14 +151,16 @@ input:focus, textarea:focus { outline: 1px solid var(--accent); }
 .seg-track button.on { background: var(--accent); color: #14120f; font-weight: 700; }
 .seg.expanded .seg-track { transform: translateX(calc(-62px - 4px)); }
 #seg-more {
-  position: absolute; right: 0; top: 0; bottom: 0; width: 26px;
-  display: grid; place-items: center; color: var(--dim);
+  position: absolute; right: 0; top: 0; bottom: 0; width: 34px;
+  display: grid; place-items: center; color: var(--accent);
   background: #262219; border-radius: 999px; transition: transform 0.22s ease;
 }
-#seg-more svg { width: 14px; height: 14px; }
+#seg-more svg { width: 18px; height: 18px; }
 .seg.expanded #seg-more { transform: rotate(180deg); }
 .row { display: flex; gap: 8px; }
 #send { background: var(--accent); color: #14120f; border-radius: var(--radius); padding: 10px 14px; align-self: stretch; display: grid; place-items: center; }
+#table-begin { display: flex; justify-content: center; padding: 14px 0 0; }
+#table-begin button { background: var(--accent); color: #14120f; border: 0; border-radius: var(--radius); padding: 10px 22px; font-weight: 700; }
 #send:disabled { opacity: 0.4; }
 
 /* playbar: pause + seek while a track sounds; fades when it ends */

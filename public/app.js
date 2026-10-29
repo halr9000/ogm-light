@@ -133,6 +133,7 @@ async function openTable(c) {
     state.olderBefore = data.olderBefore;
     state.lastSeq = state.messages.length ? state.messages[state.messages.length - 1].seq : 0;
     state.narration = camp?.narrationAudio || {};
+    $('table-begin').hidden = camp?.status !== 'lobby';
     state.whisperIds = new Set();
     renderTimeline(wp?.whispers ? wp.whispers.slice().reverse() : []);
     connectStream();
@@ -143,7 +144,20 @@ async function openTable(c) {
 
 $('back').addEventListener('click', async () => {
   if (state.es) { state.es.close(); state.es = null; }
+  $('table-begin').hidden = true;
   try { await home(); } catch {}
+});
+
+$('table-begin button').addEventListener('click', async () => {
+  const btn = $('table-begin button');
+  btn.disabled = true;
+  try {
+    await api(`/api/campaigns/${state.campaignId}`, { method: 'PATCH', body: JSON.stringify({ status: 'active' }) });
+    $('table-begin').hidden = true;
+  } catch (err) {
+    btn.textContent = err.message;
+    setTimeout(() => { btn.textContent = 'Begin'; btn.disabled = false; }, 2600);
+  }
 });
 
 // The stream speaks named SSE events; onmessage only catches unnamed ones,
@@ -277,22 +291,28 @@ const PLACEHOLDERS = { do: 'What do you do?', say: 'What do you say?', ooc: 'Out
 const seg = document.querySelector('#composer .seg');
 function collapseSeg() { seg.classList.remove('expanded'); }
 
+function selectKind(btn) {
+  state.kind = btn.dataset.kind;
+  document.querySelectorAll('#composer .seg-track button').forEach((x) => x.classList.toggle('on', x === btn));
+  $('action-text').placeholder = PLACEHOLDERS[state.kind];
+  if (state.kind === 'gm') {
+    $('action-text').focus();
+  } else {
+    collapseSeg();
+  }
+}
+
 document.querySelectorAll('#composer .seg-track button').forEach((b) => {
-  b.addEventListener('click', () => {
-    state.kind = b.dataset.kind;
-    document.querySelectorAll('#composer .seg-track button').forEach((x) => x.classList.toggle('on', x === b));
-    $('action-text').placeholder = PLACEHOLDERS[state.kind];
-    if (state.kind === 'gm') {
-      $('action-text').focus();
-    } else {
-      collapseSeg();
-    }
-  });
+  b.addEventListener('click', () => selectKind(b));
 });
 
 $('seg-more').addEventListener('click', () => {
-  seg.classList.toggle('expanded');
-  if (seg.classList.contains('expanded')) $('action-text').focus();
+  if (state.kind !== 'gm') {
+    seg.classList.add('expanded');
+    selectKind(document.querySelector('#composer [data-kind="gm"]'));
+  } else {
+    selectKind(document.querySelector('#composer [data-kind="do"]'));
+  }
 });
 
 $('composer').addEventListener('submit', async (e) => {
