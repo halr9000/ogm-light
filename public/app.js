@@ -184,12 +184,27 @@ $('new-msgs').addEventListener('click', () => {
 
 /* ---------- composer ---------- */
 
-document.querySelectorAll('#composer .seg button').forEach((b) => {
+const PLACEHOLDERS = { do: 'What do you do?', say: 'What do you say?', ooc: 'Out of character…', gm: 'Whisper to the GM…' };
+
+const seg = document.querySelector('#composer .seg');
+function collapseSeg() { seg.classList.remove('expanded'); }
+
+document.querySelectorAll('#composer .seg-track button').forEach((b) => {
   b.addEventListener('click', () => {
     state.kind = b.dataset.kind;
-    document.querySelectorAll('#composer .seg button').forEach((x) => x.classList.toggle('on', x === b));
-    $('action-text').placeholder = { do: 'What do you do?', say: 'What do you say?', ooc: 'Out of character…' }[state.kind];
+    document.querySelectorAll('#composer .seg-track button').forEach((x) => x.classList.toggle('on', x === b));
+    $('action-text').placeholder = PLACEHOLDERS[state.kind];
+    if (state.kind === 'gm') {
+      $('action-text').focus();
+    } else {
+      collapseSeg();
+    }
   });
+});
+
+$('seg-more').addEventListener('click', () => {
+  seg.classList.toggle('expanded');
+  if (seg.classList.contains('expanded')) $('action-text').focus();
 });
 
 $('composer').addEventListener('submit', async (e) => {
@@ -198,10 +213,18 @@ $('composer').addEventListener('submit', async (e) => {
   if (!text || !state.campaignId) return;
   $('send').disabled = true;
   try {
-    await api(`/api/campaigns/${state.campaignId}/actions`, {
-      method: 'POST',
-      body: JSON.stringify({ content: text, kind: state.kind }),
-    });
+    if (state.kind === 'gm') {
+      await api(`/api/campaigns/${state.campaignId}/whispers`, {
+        method: 'POST',
+        body: JSON.stringify({ message: text }),
+      });
+      collapseSeg();
+    } else {
+      await api(`/api/campaigns/${state.campaignId}/actions`, {
+        method: 'POST',
+        body: JSON.stringify({ content: text, kind: state.kind }),
+      });
+    }
     $('action-text').value = '';
     $('new-msgs').hidden = true;
     $('transcript').scrollTop = $('transcript').scrollHeight;

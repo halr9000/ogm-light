@@ -16,7 +16,7 @@ try {
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=1">
 <meta name="theme-color" content="#181420">
 <link rel="stylesheet" href="vendor/rpg-awesome/css/rpg-awesome.min.css?v=1">
-<link rel="stylesheet" href="styles.css?v=8">
+<link rel="stylesheet" href="styles.css?v=9">
 </head>
 <body>
   <!-- login -->
@@ -54,9 +54,13 @@ try {
     <div id="new-msgs" hidden><button><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 13.5 12 21m0 0-7.5-7.5M12 21V3"/></svg> new</button></div>
     <form id="composer">
       <div class="seg" role="tablist">
-        <button type="button" data-kind="do" class="on"><i class="ra ra-sword" aria-hidden="true"></i>do</button>
-        <button type="button" data-kind="say"><i class="ra ra-speech-bubble" aria-hidden="true"></i>say</button>
-        <button type="button" data-kind="ooc"><i class="ra ra-speech-bubbles" aria-hidden="true"></i>ooc</button>
+        <div class="seg-track">
+          <button type="button" data-kind="do" class="on"><i class="ra ra-sword" aria-hidden="true"></i>do</button>
+          <button type="button" data-kind="say"><i class="ra ra-speech-bubble" aria-hidden="true"></i>say</button>
+          <button type="button" data-kind="ooc"><i class="ra ra-speech-bubbles" aria-hidden="true"></i>ooc</button>
+          <button type="button" data-kind="gm"><i class="ra ra-hood" aria-hidden="true"></i>gm</button>
+        </div>
+        <button type="button" id="seg-more" aria-label="More"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/></svg></button>
       </div>
       <div class="row">
         <textarea id="action-text" rows="1" placeholder="What do you do?" enterkeyhint="send"></textarea>
@@ -76,6 +80,6 @@ try {
     </section>
   </aside>
 
-  <script src="app.js?v=7"></script>
+  <script src="app.js?v=8"></script>
 </body>
 </html>

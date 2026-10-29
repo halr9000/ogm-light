@@ -91,11 +91,21 @@ input:focus, textarea:focus { outline: 1px solid var(--accent); }
 
 /* composer */
 #composer { background: var(--panel); border-top: 1px solid #2a2620; padding: 8px 12px calc(env(safe-area-inset-bottom) + 10px); display: grid; gap: 8px; }
-.seg { display: flex; gap: 4px; }
-.seg button { flex: 1; padding: 7px 0; border-radius: 999px; color: var(--dim); background: #262219; font-size: 0.875rem; }
-.seg button.on { background: var(--accent); color: #14120f; font-weight: 700; }
-.row { display: flex; gap: 8px; align-items: flex-end; }
-#send { background: var(--accent); color: #14120f; border-radius: var(--radius); padding: 10px 14px; }
+.seg { position: relative; overflow: hidden; }
+.seg-track { display: flex; gap: 4px; width: calc(100% + 66px); transition: transform 0.22s ease; }
+.seg-track button { flex: 1; padding: 7px 0; border-radius: 999px; color: var(--dim); background: #262219; font-size: 0.875rem; white-space: nowrap; }
+.seg-track button[data-kind="gm"] { flex: 0 0 62px; }
+.seg-track button.on { background: var(--accent); color: #14120f; font-weight: 700; }
+.seg.expanded .seg-track { transform: translateX(calc(-62px - 4px)); }
+#seg-more {
+  position: absolute; right: 0; top: 0; bottom: 0; width: 26px;
+  display: grid; place-items: center; color: var(--dim);
+  background: #262219; border-radius: 999px; transition: transform 0.22s ease;
+}
+#seg-more svg { width: 14px; height: 14px; }
+.seg.expanded #seg-more { transform: rotate(180deg); }
+.row { display: flex; gap: 8px; }
+#send { background: var(--accent); color: #14120f; border-radius: var(--radius); padding: 10px 14px; align-self: stretch; display: grid; place-items: center; }
 #send:disabled { opacity: 0.4; }
 
 /* settings flyout (body-level so every screen can open it) */
