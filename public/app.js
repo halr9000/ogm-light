@@ -144,6 +144,8 @@ async function openTable(c) {
 
 $('back').addEventListener('click', async () => {
   if (state.es) { state.es.close(); state.es = null; }
+  stopAudio(true); // the playbar must not survive the table — it would show stale seek state
+  state.pendingAuto = null;
   $('table-begin').hidden = true;
   try { await home(); } catch {}
 });
