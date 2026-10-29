@@ -28,14 +28,34 @@ function serveStatic(req, res) {
   if (!abs.startsWith(PUBLIC)) { res.writeHead(403); return res.end(); }
   fs.readFile(abs, (err, data) => {
     if (err) { res.writeHead(404, { 'Content-Type': 'text/plain' }); return res.end('not found'); }
-    res.writeHead(200, { 'Content-Type': TYPES[path.extname(abs)] || 'application/octet-stream', 'Cache-Control': 'no-cache' });
+    res.writeHead(200, { 'Content-Type': TYPES[path.extname(abs)] || 'application/octet-stream', 'Cache-Control': 'no-store' });
     res.end(data);
   });
 }
 
-// Strip attributes that would break same-origin cookie auth.
+// The backend's session cookie is odm_session. Browsers only ever see
+// ogml_session: any stale/oddly-attributed odm_session cookie left in a
+// device jar (e.g. from a dev iteration) can then never shadow the live
+// session — the proxy strips odm_session from requests and re-adds it
+// solely from ogml_session, so exactly one session cookie reaches OGM.
+const COOKIE_IN = 'odm_session';
+const COOKIE_OUT = 'ogml_session';
+
+// Strip attributes that would break same-origin cookie auth; rename cookie.
 function rewriteSetCookie(h) {
-  return h.replace(/;\s*Domain=[^;]*/gi, '').replace(/;\s*Secure/gi, '');
+  return h
+    .replace(/^(\s*)odm_session=/, '$1ogml_session=')
+    .replace(/;\s*Domain=[^;]*/gi, '')
+    .replace(/;\s*Secure/gi, '');
+}
+
+function rewriteRequestCookies(header) {
+  if (!header) return header;
+  const pairs = header.split(';').map(s => s.trim()).filter(Boolean);
+  const ogml = pairs.find(p => p.startsWith(COOKIE_OUT + '='));
+  const kept = pairs.filter(p => !p.startsWith(COOKIE_IN + '=') && !p.startsWith(COOKIE_OUT + '='));
+  if (ogml) kept.push(`${COOKIE_IN}=${ogml.slice(COOKIE_OUT.length + 1)}`);
+  return kept.join('; ');
 }
 
 const server = http.createServer((req, res) => {
@@ -48,7 +68,12 @@ const server = http.createServer((req, res) => {
       port: TARGET_PORT,
       path: url.pathname + url.search,
       method: req.method,
-      headers: { ...req.headers, host: `${TARGET_HOST}:${TARGET_PORT}` },
+      headers: (() => {
+        const h = { ...req.headers, host: `${TARGET_HOST}:${TARGET_PORT}` };
+        const rc = rewriteRequestCookies(req.headers.cookie);
+        if (rc) h.cookie = rc; else delete h.cookie;
+        return h;
+      })(),
     },
     (up) => {
       const headers = { ...up.headers };
