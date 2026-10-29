@@ -22,6 +22,8 @@ input, textarea { font: inherit; color: var(--text); background: var(--panel); b
 input:focus, textarea:focus { outline: 1px solid var(--accent); }
 
 .screen { height: 100dvh; display: flex; flex-direction: column; }
+/* Author `display` rules above beat the UA [hidden] default — enforce it. */
+[hidden] { display: none !important; }
 
 /* login */
 #login { justify-content: center; padding: 24px; max-width: 420px; margin: 0 auto; }
