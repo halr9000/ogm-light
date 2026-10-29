@@ -132,6 +132,7 @@ input:focus, textarea:focus { outline: 1px solid var(--accent); }
 #sheet .sheet-sub { margin: 0 0 12px; color: var(--dim); font-size: 0.81rem; }
 #sheet .sheet-sec { margin: 14px 0 0; padding-top: 10px; border-top: 1px solid #2a2620; }
 #sheet .sheet-sec h4 { margin: 0 0 8px; font-size: 0.75rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--dim); }
+#sheet .sheet-sec h4 i { font-size: 0.9rem; color: var(--accent); margin-right: 6px; vertical-align: -1px; }
 #sheet .sheet-hp b { font-size: 1.625rem; font-weight: 700; color: var(--accent); display: block; line-height: 1.1; }
 #sheet .sheet-hp span { color: var(--dim); font-size: 0.75rem; }
 #sheet .stat-grid, #sheet .abil-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 10px; }

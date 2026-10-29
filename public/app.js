@@ -276,11 +276,17 @@ const mod = (score) => Math.floor(((Number(score) || 10) - 10) / 2);
 const signed = (n) => (n >= 0 ? '+' : '') + n;
 const pretty = (id, names) => names[id] || String(id).replace(/_/g, ' ');
 
-function sheetSection(title) {
+function sheetSection(title, icon) {
   const sec = document.createElement('section');
   sec.className = 'sheet-sec';
   const h = document.createElement('h4');
-  h.textContent = title;
+  if (icon) {
+    const i = document.createElement('i');
+    i.className = `ra ${icon}`;
+    i.setAttribute('aria-hidden', 'true');
+    h.appendChild(i);
+  }
+  h.appendChild(document.createTextNode(title));
   sec.appendChild(h);
   return sec;
 }
@@ -350,7 +356,7 @@ function renderSheet() {
   el.appendChild(vitals);
 
   // ability scores
-  const abil = sheetSection('Abilities');
+  const abil = sheetSection('Abilities', 'ra-muscle-up');
   const abilGrid = document.createElement('div');
   abilGrid.className = 'abil-grid';
   for (const [key, label] of ABILITIES) {
@@ -363,7 +369,7 @@ function renderSheet() {
   el.appendChild(abil);
 
   // saves + skills (trained only; the full list is the full app's problem)
-  const profs = sheetSection('Proficiencies');
+  const profs = sheetSection('Proficiencies', 'ra-aware');
   const saveList = (s.proficiencies?.saves || []).map((k) => pretty(k, SAVE_NAMES));
   const skillList = skills.map((k) => pretty(k, SKILL_NAMES) + ((s.proficiencies?.expertise || []).includes(k) ? ' ●' : ''));
   if (saveList.length || skillList.length) {
@@ -395,7 +401,7 @@ function renderSheet() {
   // spellcasting
   const sp = s.spellcasting;
   if (sp) {
-    const sec = sheetSection('Spellcasting');
+    const sec = sheetSection('Spellcasting', 'ra-scroll-unfurled');
     const ab = SPELL_ABILITY[sp.ability] || '—';
     const abMod = sp.ability ? mod(s.abilities?.[sp.ability]) : 0;
     const head = document.createElement('p');
@@ -432,7 +438,7 @@ function renderSheet() {
   // features & feats
   const feats = (s.features || []).concat(s.feats || []);
   if (feats.length) {
-    const sec = sheetSection('Features');
+    const sec = sheetSection('Features', 'ra-pawn');
     const list = document.createElement('ul');
     list.className = 'feat-list';
     for (const f of feats) {
@@ -451,7 +457,7 @@ function renderSheet() {
   if (s.concentratingOn) conds.push(`Concentrating: ${s.concentratingOn}`);
   const resKeys = Object.keys(s.resources || {}).filter((k) => s.resources[k]?.max);
   if (conds.length || resKeys.length) {
-    const sec = sheetSection('Condition');
+    const sec = sheetSection('Condition', 'ra-player-pain');
     for (const c of conds) sec.appendChild(chip(c, 'bad'));
     for (const k of resKeys) {
       const r = s.resources[k];
@@ -463,7 +469,7 @@ function renderSheet() {
   // equipment + purse
   const gear = s.equipment || [];
   if (gear.length || s.gold != null) {
-    const sec = sheetSection('Equipment');
+    const sec = sheetSection('Equipment', 'ra-ammo-bag');
     if (gear.length) {
       const wrap = document.createElement('div');
       wrap.className = 'chips';
@@ -481,7 +487,7 @@ function renderSheet() {
 
   // notes
   if (s.notes || s.backstory) {
-    const sec = sheetSection('Notes');
+    const sec = sheetSection('Notes', 'ra-quill-ink');
     const d = document.createElement('details');
     if (s.notes) {
       const n = document.createElement('p');
@@ -551,6 +557,13 @@ function openSettings() {
   el.hidden = false;
 }
 function closeSettings() { $('settings').hidden = true; }
+// tap anywhere outside the open sheet closes it
+document.addEventListener('click', (e) => {
+  const el = $('sheet');
+  if (el.hidden) return;
+  if (e.target.closest('#sheet') || e.target.closest('#sheet-toggle')) return;
+  el.hidden = true;
+});
 for (const b of document.querySelectorAll('.settings-open')) b.addEventListener('click', openSettings);
 $('settings-close').addEventListener('click', closeSettings);
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeSettings(); });
