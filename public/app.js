@@ -148,8 +148,8 @@ $('back').addEventListener('click', async () => {
   try { await home(); } catch {}
 });
 
-$('table-begin button').addEventListener('click', async () => {
-  const btn = $('table-begin button');
+document.querySelector('#table-begin button').addEventListener('click', async () => {
+  const btn = document.querySelector('#table-begin button');
   btn.disabled = true;
   try {
     await api(`/api/campaigns/${state.campaignId}`, { method: 'PATCH', body: JSON.stringify({ status: 'active' }) });
