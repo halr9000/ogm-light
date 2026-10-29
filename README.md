@@ -36,9 +36,9 @@ settings away from anything OGM itself defines.
 
 The table and the sheet, at phone size:
 
-![The table, mid-scene](docs/screenshot-main.png)
-
-![The character sheet](docs/screenshot-sheet.png)
+| Table | Sheet |
+| :---: | :---: |
+| <img src="docs/screenshot-main.png" width="250" alt="The table, mid-scene"> | <img src="docs/screenshot-sheet.png" width="250" alt="The character sheet"> |
 
 ## What's in the box
 
