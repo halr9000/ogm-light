@@ -337,6 +337,7 @@ $('composer').addEventListener('submit', async (e) => {
       });
     }
     $('action-text').value = '';
+    autosize();
     $('new-msgs').hidden = true;
     $('transcript').scrollTop = $('transcript').scrollHeight;
   } catch (err) {
@@ -350,6 +351,17 @@ $('composer').addEventListener('submit', async (e) => {
 $('action-text').addEventListener('keydown', (e) => {
   if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); $('send').click(); }
 });
+
+// autosize: grows with typing up to five lines, never overflows the layout
+const ta = $('action-text');
+function autosize() {
+  ta.style.height = 'auto';
+  const lh = parseFloat(getComputedStyle(ta).lineHeight) || 22;
+  const max = 5 * lh + 20;
+  ta.style.height = Math.min(ta.scrollHeight, max) + 'px';
+  ta.style.overflowY = ta.scrollHeight > max ? 'auto' : 'hidden';
+}
+ta.addEventListener('input', autosize);
 
 /* ---------- narration audio ---------- */
 
