@@ -503,6 +503,63 @@ function renderSheet() {
   }
 }
 
+/* ---------- settings: text size (strict 16px floor) ---------- */
+
+const TEXT_SIZES = [
+  { scale: 1, label: 'Default' },
+  { scale: 1.25, label: 'Large' },
+  { scale: 1.5, label: 'Larger' },
+  { scale: 1.75, label: 'Largest' },
+];
+// The floor lives in CSS (html font-size: max(16px, …)) and is repeated here:
+// a corrupted stored value can only ever clamp UP to readable, never down.
+const clampScale = (v) => Math.min(1.75, Math.max(1, Number(v) || 1));
+let textScale = clampScale(localStorage.getItem('ogml_textscale'));
+
+function applyTextScale(v, save = true) {
+  textScale = clampScale(v);
+  document.documentElement.style.setProperty('--textscale', textScale);
+  if (save) {
+    try { localStorage.setItem('ogml_textscale', String(textScale)); } catch {}
+  }
+  for (const b of document.querySelectorAll('#textsize-opts .size-opt'))
+    b.setAttribute('aria-pressed', String(clampScale(b.dataset.scale) === textScale));
+}
+
+(function buildSettings() {
+  const wrap = $('textsize-opts');
+  for (const { scale, label } of TEXT_SIZES) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'size-opt';
+    b.dataset.scale = scale;
+    b.innerHTML = // esc() not needed: only literals below reach innerHTML
+      `<span class="sample" style="font-size:calc(1rem * ${scale})">A</span>` +
+      `<span class="lbl">${label}<small>${Math.round(16 * scale)} px and up</small></span>`;
+    b.addEventListener('click', () => applyTextScale(scale));
+    wrap.appendChild(b);
+  }
+})();
+
+applyTextScale(textScale, false); // sync pressed states with the pre-paint value
+
+function openSettings() {
+  const el = $('settings');
+  // sit just below whichever bar is visible — the bar grows with text scale
+  const bar = document.querySelector('#home:not([hidden]) .bar, #table:not([hidden]) .bar');
+  if (bar) el.style.top = `calc(${Math.round(bar.getBoundingClientRect().bottom)}px + 6px)`;
+  el.hidden = false;
+}
+function closeSettings() { $('settings').hidden = true; }
+for (const b of document.querySelectorAll('.settings-open')) b.addEventListener('click', openSettings);
+$('settings-close').addEventListener('click', closeSettings);
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeSettings(); });
+document.addEventListener('click', (e) => {
+  if ($('settings').hidden) return;
+  if (e.target.closest('#settings') || e.target.closest('.settings-open')) return;
+  closeSettings();
+});
+
 /* ---------- boot ---------- */
 
 document.addEventListener('visibilitychange', () => {
