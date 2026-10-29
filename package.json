@@ -1,0 +1,9 @@
+{
+  "name": "ogm-light",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Minimal mobile-first player client for Open Game Master",
+  "scripts": {
+    "start": "node server.js"
+  }
+}

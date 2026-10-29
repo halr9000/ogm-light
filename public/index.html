@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#14120f">
+<title>ogm-light</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- login -->
+  <section id="login" class="screen">
+    <h1>ogm-light</h1>
+    <form id="login-form">
+      <input id="login-user" name="username" placeholder="username" autocomplete="username" required>
+      <input id="login-pass" name="password" type="password" placeholder="password" autocomplete="current-password" required>
+      <button type="submit">Play</button>
+      <p id="login-error" class="error" hidden></p>
+    </form>
+  </section>
+
+  <!-- campaign picker -->
+  <section id="home" class="screen" hidden>
+    <header class="bar"><h2>Tables</h2><button id="logout">Log out</button></header>
+    <div id="campaign-list"></div>
+  </section>
+
+  <!-- table -->
+  <section id="table" class="screen" hidden>
+    <header class="bar">
+      <button id="back" aria-label="Back">‹</button>
+      <h2 id="table-title">…</h2>
+      <div class="bar-actions">
+        <button id="tts-toggle" aria-label="Narration voice" title="Narration voice">🔇</button>
+        <button id="sheet-toggle" aria-label="Character sheet">🧾</button>
+      </div>
+    </header>
+    <div id="transcript" aria-live="polite"></div>
+    <div id="new-msgs" hidden><button>↓ new</button></div>
+    <form id="composer">
+      <div class="seg" role="tablist">
+        <button type="button" data-kind="do" class="on">do</button>
+        <button type="button" data-kind="say">say</button>
+        <button type="button" data-kind="ooc">ooc</button>
+      </div>
+      <div class="row">
+        <textarea id="action-text" rows="1" placeholder="What do you do?" enterkeyhint="send"></textarea>
+        <button id="send" type="submit" aria-label="Send">➤</button>
+      </div>
+    </form>
+    <aside id="sheet" hidden></aside>
+  </section>
+
+  <script src="app.js"></script>
+</body>
+</html>
