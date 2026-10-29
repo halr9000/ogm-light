@@ -934,8 +934,8 @@ function applyFace(id, save = true) {
 /* ---------- settings: narration (on demand / auto) ---------- */
 
 const NARRATE_MODES = [
-  { id: 'tap', label: 'On demand narration' },
-  { id: 'auto', label: 'Automatic narration' },
+  { id: 'tap', label: 'On demand' },
+  { id: 'auto', label: 'Automatic' },
 ];
 // one line of flash on change, then gone — the labels stay in the buttons
 const NARRATE_FLASH = { tap: 'On demand narration.', auto: 'Automatic narration.' };
