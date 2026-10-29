@@ -96,10 +96,39 @@ input:focus, textarea:focus { outline: 1px solid var(--accent); }
 #sheet {
   position: absolute; inset: 0 0 0 auto; width: min(88vw, 380px);
   background: var(--panel); border-left: 1px solid #2a2620;
-  padding: calc(env(safe-area-inset-top) + 16px) 16px calc(env(safe-area-inset-bottom) + 16px);
+  padding: calc(env(safe-area-inset-top) + 10px) 16px calc(env(safe-area-inset-bottom) + 16px);
   overflow-y: auto; box-shadow: -8px 0 24px rgb(0 0 0 / 0.5);
 }
-#sheet h3 { margin: 0 0 12px; color: var(--accent); }
-#sheet .kv { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #2a2620; font-size: 15px; }
-#sheet .kv b { color: var(--dim); font-weight: 600; }
-#sheet .hp { font-size: 26px; font-weight: 700; color: var(--accent); margin-bottom: 10px; }
+.sheet-close { position: absolute; top: calc(env(safe-area-inset-top) + 8px); right: 10px; padding: 8px; color: var(--dim); border-radius: 8px; }
+.sheet-close svg { width: 18px; height: 18px; display: block; }
+#sheet .sheet-name { margin: 0 26px 2px 0; font-size: 18px; color: var(--accent); }
+#sheet .sheet-sub { margin: 0 0 12px; color: var(--dim); font-size: 13px; }
+#sheet .sheet-sec { margin: 14px 0 0; padding-top: 10px; border-top: 1px solid #2a2620; }
+#sheet .sheet-sec h4 { margin: 0 0 8px; font-size: 12px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--dim); }
+#sheet .sheet-hp b { font-size: 26px; font-weight: 700; color: var(--accent); display: block; line-height: 1.1; }
+#sheet .sheet-hp span { color: var(--dim); font-size: 12px; }
+#sheet .stat-grid, #sheet .abil-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 10px; }
+#sheet .abil-grid { grid-template-columns: repeat(6, 1fr); margin-top: 0; }
+#sheet .stat-grid > div, #sheet .abil-grid > div { background: #262219; border-radius: 8px; padding: 7px 4px; text-align: center; }
+#sheet .stat-grid b { display: block; font-size: 15px; }
+#sheet .stat-grid span, #sheet .abil-grid span { color: var(--dim); font-size: 10px; letter-spacing: 0.4px; }
+#sheet .abil-grid b { display: block; font-size: 16px; }
+#sheet .abil-grid i { font-style: normal; display: block; font-size: 10px; color: var(--accent); }
+#sheet .chips { display: flex; flex-wrap: wrap; gap: 5px; }
+#sheet .chip { background: #262219; border-radius: 999px; padding: 3px 10px; font-size: 12.5px; }
+#sheet .chip.plain { background: none; padding: 0; font-size: 13px; }
+#sheet .chip.bad { background: #3a2320; color: #d98a7c; }
+#sheet .prof-line { margin: 0 0 8px; font-size: 13px; line-height: 1.7; }
+#sheet .prof-line b { color: var(--dim); font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px; margin-right: 4px; }
+#sheet .slot-row { display: flex; align-items: center; gap: 8px; padding: 4px 0; }
+#sheet .slot-row b { font-size: 12px; color: var(--dim); width: 26px; }
+#sheet .slotbar { display: flex; gap: 4px; flex: 1; }
+#sheet .slotbar i { width: 14px; height: 8px; border-radius: 2px; background: #3a352c; }
+#sheet .slotbar i.full { background: var(--accent); }
+#sheet .slot-row small { color: var(--dim); }
+#sheet .feat-list { margin: 0; padding: 0; list-style: none; font-size: 13.5px; }
+#sheet .feat-list li { padding: 4px 0; border-bottom: 1px solid #241f18; }
+#sheet .feat-list li:last-child { border-bottom: none; }
+#sheet .feat-list small { color: var(--dim); }
+#sheet .sheet-note { white-space: pre-wrap; font-size: 13px; color: var(--dim); margin: 4px 0; }
+#sheet summary { cursor: pointer; color: var(--accent); font-size: 13px; }
