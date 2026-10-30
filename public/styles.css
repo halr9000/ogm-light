@@ -145,8 +145,18 @@ input:focus, textarea:focus { outline: 1px solid var(--accent); }
 #home #campaign-list { flex: 1; overflow-y: auto; padding: 12px; display: grid; gap: 10px; align-content: start; }
 .campaign-card {
   text-align: left; background: var(--panel); border: 1px solid #2a2620;
-  border-radius: var(--radius); padding: 14px; display: block; width: 100%;
+  border-radius: var(--radius); padding: 14px; display: flex; align-items: flex-start;
+  gap: 8px; width: 100%;
 }
+/* the tappable body of the card; .campaign-card keeps the visuals */
+.card-main { flex: 1; min-width: 0; background: none; border: 0; padding: 0;
+             color: inherit; font: inherit; text-align: left; cursor: pointer; }
+/* exit chip: dim and neutral on purpose — brass means "go" inside light */
+.ext { flex: none; display: inline-flex; align-items: center; justify-content: center;
+       width: 34px; height: 34px; margin: -4px -6px 0 0; border-radius: 9px;
+       color: var(--dim); text-decoration: none; }
+.ext svg { width: 17px; height: 17px; }
+.ext:active { color: var(--text); background: #262219; }
 .campaign-card b { font-family: var(--serif); font-weight: 600; font-size: 1rem; }
 .campaign-card small { color: var(--dim); display: block; margin-top: 2px; }
 
@@ -270,11 +280,16 @@ input:focus, textarea:focus { outline: 1px solid var(--accent); }
   padding: 10px; z-index: 80; box-shadow: 0 12px 32px rgb(0 0 0 / 0.6);
 }
 #char-chooser .chooser-item {
-  display: flex; align-items: center; gap: 10px; width: 100%;
+  display: flex; align-items: center; gap: 6px; width: 100%;
   padding: 10px 12px; border-radius: 8px; text-align: left; font-size: 0.95rem;
 }
+#char-chooser .item-main { flex: 1; min-width: 0; display: flex; align-items: center;
+                           gap: 10px; background: none; border: 0; padding: 0;
+                           color: inherit; font: inherit; text-align: left; cursor: pointer; }
+#char-chooser .item-main .cls { color: var(--dim); margin-left: auto; font-size: 0.8rem; }
+#char-chooser .chooser-item .ext { margin: 0; width: 30px; height: 30px; }
+#char-chooser .chooser-item .ext svg { width: 15px; height: 15px; }
 #char-chooser .chooser-item .ra { color: var(--accent); }
-#char-chooser .chooser-item .cls { color: var(--dim); margin-left: auto; font-size: 0.8rem; }
 #char-chooser .chooser-item[aria-pressed="true"] {
   background: #262219; box-shadow: inset 0 0 0 1px var(--accent);
 }

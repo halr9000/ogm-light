@@ -1,0 +1,150 @@
+<!doctype html>
+<!-- characters-tab-mock: second tab beside Tables, view-only — throwaway mock, not shipped -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ogm-light · characters tab mock</title>
+<link rel="stylesheet" href="/vendor/rpg-awesome/css/rpg-awesome.min.css">
+<style>
+  :root {
+    --bg: #14120f; --panel: #1c1915; --text: #e8e2d5; --dim: #8d8577;
+    --accent: #c9a35c; --danger: #b04a3a; --ok: #6b8f6b;
+    --serif: 'Lora', Georgia, 'Iowan Old Style', 'Palatino Linotype', 'Book Antiqua', serif;
+    --radius: 12px;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; overflow: hidden; }
+  body { margin: 0; background: var(--bg); color: var(--text); font-family: system-ui, sans-serif;
+         display: flex; flex-direction: column; }
+  .bar { display: flex; align-items: center; gap: 10px;
+         padding: calc(env(safe-area-inset-top) + 8px) 14px 8px;
+         background: var(--panel); border-bottom: 1px solid #2a2620; }
+  .wordmark { margin: 0; flex: 1; font-family: var(--serif); font-size: 1.06rem; line-height: 1.2; }
+  .wordmark .ogm { font-weight: 600; letter-spacing: 0.06em; color: var(--accent); }
+  .wordmark .light { font-style: italic; font-weight: 500; color: var(--dim); letter-spacing: 0.01em; }
+  .btn-icon { border: 0; background: none; color: var(--dim); padding: 6px; cursor: pointer; }
+  .btn-icon svg { width: 22px; height: 22px; }
+  .btn-logout { display: inline-flex; align-items: center; gap: 6px; color: var(--dim);
+                font-size: 0.875rem; background: none; border: 0; cursor: pointer; }
+  .btn-logout svg { width: 16px; height: 16px; }
+
+  /* tabs: two panes, swipe or tap */
+  .tabs { display: flex; background: var(--panel); border-bottom: 1px solid #2a2620; }
+  .tabs button { flex: 1; padding: 10px 0 9px; background: none; border: 0; cursor: pointer;
+                 color: var(--dim); font: 600 0.9rem var(--serif); letter-spacing: 0.02em; }
+  .tabs button[aria-selected="true"] { color: var(--text); box-shadow: inset 0 -2px 0 var(--accent); }
+  .viewport { flex: 1; overflow: hidden; position: relative; }
+  .panes { position: absolute; inset: 0; display: flex; width: 200%; transform: translateX(0); transition: transform 0.22s ease; }
+  .panes.drag { transition: none; }
+  .pane { width: 50%; overflow-y: auto; padding: 12px; display: grid; gap: 10px; align-content: start; }
+
+  .campaign-card, .char-card { text-align: left; background: var(--panel); border: 1px solid #2a2620;
+                   border-radius: var(--radius); padding: 14px; color: var(--text); font: inherit; }
+  .campaign-card b { font-family: var(--serif); font-weight: 600; display: block; }
+  .campaign-card .who { display: flex; align-items: center; gap: 7px; margin-top: 6px;
+                        color: var(--text); font-size: 0.875rem; }
+  .campaign-card .who i { color: var(--accent); font-size: 1rem; }
+  .campaign-card .who .cls { color: var(--dim); }
+
+  /* characters: view-only rows */
+  .char-card { display: flex; align-items: center; gap: 12px; padding: 12px 14px; }
+  .char-card > i { color: var(--accent); font-size: 1.5rem; }
+  .char-card .mid { flex: 1; min-width: 0; }
+  .char-card .name { font-family: var(--serif); font-weight: 600; }
+  .char-card .meta { color: var(--dim); font-size: 0.8rem; margin-top: 2px; }
+  .char-card .meta b { color: var(--dim); font-weight: 500; }
+  /* the one way out to the full app: gold pencil chip, opens a new tab */
+  .edit-link { flex: none; display: inline-flex; align-items: center; justify-content: center;
+               width: 34px; height: 34px; border-radius: 9px;
+               color: var(--accent); background: #262219; text-decoration: none; }
+  .edit-link svg { width: 16px; height: 16px; }
+  .edit-link:active { background: var(--accent); color: #14120f; }
+
+  footer { display: flex; flex-direction: column; align-items: center; gap: 7px;
+           padding: 12px 14px calc(env(safe-area-inset-bottom) + 12px);
+           background: var(--panel); border-top: 1px solid #2a2620; }
+  footer .row { display: flex; align-items: center; gap: 20px; font-size: 0.9rem; }
+  footer a { color: var(--text); text-decoration: none; display: inline-flex; align-items: center; gap: 7px; }
+  footer a:active { color: var(--accent); }
+  .conn .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ok);
+               box-shadow: 0 0 0 0 rgba(107,143,107,0.5); animation: pulse 2.6s ease-out infinite; }
+  @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(107,143,107,0.45); }
+                     70% { box-shadow: 0 0 0 6px rgba(107,143,107,0); }
+                     100% { box-shadow: 0 0 0 0 rgba(107,143,107,0); } }
+  .conn .host { color: var(--dim); }
+  footer .credit { display: flex; align-items: center; gap: 7px; color: var(--dim); font-size: 0.8rem; }
+  footer .credit img { width: 16px; height: 16px; border-radius: 4px; display: block; }
+  footer .credit a { color: var(--text); gap: 5px; font-size: 0.8rem; }
+  footer .credit a span { font-family: var(--serif); }
+</style>
+</head>
+<body>
+  <header class="bar">
+    <h2 class="wordmark"><span class="ogm">OGM</span> <span class="light">light</span></h2>
+    <button class="btn-icon" aria-label="Settings"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1-.083.899c-.07.553-.09 1.11-.09 1.667 0 .563.09 1.12.09 1.667 0 .557-.02 1.114-.09 1.667-.04.386-.137.758-.43.992l-1.004.827a1.125 1.125 0 0 1-1.37.49l-1.217-.456c-.355-.133-.75-.072-1.075.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.111-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.37-.49l-1.296-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 .083-.9c.07-.554.09-1.111.09-1.668 0-.556-.02-1.113-.09-1.667-.04-.386-.137-.758-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.431l1.296-2.247a1.125 1.125 0 0 1 1.37-.49l1.217.456c.355.132.75.072 1.075-.124.073-.04.147-.084.22-.128.332-.184.582-.496.644-.87l.213-1.281Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg></button>
+    <button class="btn-logout"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9"/></svg>Log out</button>
+  </header>
+
+  <div class="tabs" role="tablist">
+    <button role="tab" aria-selected="true" data-pane="0">Tables</button>
+    <button role="tab" aria-selected="false" data-pane="1">Characters</button>
+  </div>
+
+  <div class="viewport">
+  <div class="panes" id="panes">
+    <section class="pane">
+      <button class="campaign-card"><b>OGML UI Test</b><span class="who"><i class="ra ra-plain-dagger"></i>Vex <span class="cls">· rogue</span></span></button>
+      <button class="campaign-card"><b>Curse of Strahd</b><span class="who"><i class="ra ra-crystal-ball"></i>Wren <span class="cls">· wizard</span></span></button>
+    </section>
+    <section class="pane">
+      <div class="char-card">
+        <i class="ra ra-plain-dagger"></i>
+        <span class="mid"><span class="name">Vex</span>
+          <span class="meta">rogue · level 3 — <b>OGML UI Test</b></span></span>
+        <a class="edit-link" href="http://ogmhost.example:3005/characters/abc/edit" target="_blank" rel="noopener" title="Edit in the full app — opens a new tab"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487 18.549 2.8a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"/></svg></a>
+      </div>
+      <div class="char-card">
+        <i class="ra ra-crystal-ball"></i>
+        <span class="mid"><span class="name">Pip</span>
+          <span class="meta">wizard · level 1 — <b>OGML UI Test</b></span></span>
+        <a class="edit-link" href="http://ogmhost.example:3005/characters/def/edit" target="_blank" rel="noopener" title="Edit in the full app — opens a new tab"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487 18.549 2.8a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"/></svg></a>
+      </div>
+      <div class="char-card">
+        <i class="ra ra-crystal-ball"></i>
+        <span class="mid"><span class="name">Wren</span>
+          <span class="meta">wizard · level 2 — <b>Curse of Strahd</b></span></span>
+      </div>
+    </section>
+  </div>
+  </div>
+
+  <footer>
+    <div class="row">
+      <a class="conn" href="#"><span class="dot"></span>server&nbsp;<span class="host">ogmhost</span><</a>
+      <a class="gh" href="#">GitHub</a>
+    </div>
+    <div class="credit">made possible by
+      <a href="#"><img src="/vendor/ogm-icon.png" alt="" width="16" height="16"><span>Open&nbsp;Game&nbsp;Master</span></a>
+    </div>
+  </footer>
+
+<script>
+// swipe between the two panes; tab taps snap to them
+const panes = document.getElementById('panes');
+const tabs = [...document.querySelectorAll('.tabs button')];
+function go(i) { panes.style.transform = `translateX(-${i * 50}%)`;
+                 tabs.forEach((t, k) => t.setAttribute('aria-selected', String(k === i))); }
+tabs.forEach(t => t.addEventListener('click', () => go(+t.dataset.pane)));
+let x0 = null;
+panes.addEventListener('pointerdown', e => { x0 = e.clientX; panes.classList.add('drag'); });
+panes.addEventListener('pointerup', e => {
+  if (x0 === null) return;
+  const dx = e.clientX - x0; x0 = null; panes.classList.remove('drag');
+  const cur = panes.style.transform.includes('-50%') ? 1 : 0;
+  if (dx < -40 && cur === 0) go(1);
+  if (dx > 40 && cur === 1) go(0);
+});
+</script>
+</body>
+</html>

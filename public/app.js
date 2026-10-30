@@ -95,10 +95,16 @@ async function home() {
       return;
     }
     for (const c of data.campaigns) {
-      const b = document.createElement('button');
-      b.className = 'campaign-card';
-      b.innerHTML = `<b>${esc(c.title || c.name || 'Untitled')}</b><span class="who"></span>`;
-      const who = b.querySelector('.who');
+      // card = div so the full-app exit chip can live beside the tappable
+      // body: most of the card stays in light, the chip leaves it.
+      const card = document.createElement('div');
+      card.className = 'campaign-card';
+      const main = document.createElement('button');
+      main.className = 'card-main';
+      main.innerHTML = `<b>${esc(c.title || c.name || 'Untitled')}</b><span class="who"></span>`;
+      card.appendChild(main);
+      card.appendChild(extChip(`/campaigns/${c.id}`, 'Open this table in the full app'));
+      const who = main.querySelector('.who');
       // one light call per table for the active character; a miss just
       // leaves the quiet "no character" state. innerHTML is safe: the icon
       // class comes from the CLASS_ICONS whitelist, name/class go through esc().
@@ -110,8 +116,8 @@ async function home() {
       // tappable when the table holds several of your characters: opens the
       // chooser (a no-op fetch when you own only one, then it stays quiet).
       who.addEventListener('click', (e) => { e.stopPropagation(); openChooser(c.id, who); });
-      b.addEventListener('click', () => openTable(c));
-      list.appendChild(b);
+      main.addEventListener('click', () => openTable(c));
+      list.appendChild(card);
     }
   } catch (err) {
     list.innerHTML = `<p class="error">${esc(err.message)}</p>`;
@@ -127,6 +133,31 @@ function whoMarkup(sheet) {
     (sheet.class ? ` <span class="cls">· ${esc(String(sheet.class).toLowerCase())}</span>` : '');
 }
 
+/* ---------- open in full: the one way out to the OGM app ---------- */
+// Neutral-dim box-escape arrow on purpose: brass is reserved for in-app "go",
+// so anything carrying this glyph reads as "another app, another UX".
+const EXT_ICON = '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"/></svg>';
+let ogmBase = null; // full-app origin, from /api/health
+async function openFull(path) {
+  if (!ogmBase) {
+    try { ogmBase = (await api('/api/health')).origin || ''; }
+    catch { /* offline proxy: derive from where we are */ }
+    if (!ogmBase) ogmBase = `${location.protocol}//${location.hostname}:3005`;
+  }
+  window.open(ogmBase + path, '_blank', 'noopener');
+}
+// an anchor so it reads as a link; the click resolves the origin lazily.
+function extChip(path, label) {
+  const a = document.createElement('a');
+  a.className = 'ext';
+  a.href = '#';
+  a.setAttribute('aria-label', label);
+  a.title = label;
+  a.innerHTML = EXT_ICON;
+  a.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); openFull(path); });
+  return a;
+}
+
 /* ---------- character switcher (multi-character tables) ---------- */
 
 async function openChooser(campaignId, who) {
@@ -138,12 +169,20 @@ async function openChooser(campaignId, who) {
   const list = $('chooser-list');
   list.innerHTML = '';
   for (const s of owned) {
-    const btn = document.createElement('button');
-    btn.className = 'chooser-item';
-    btn.innerHTML = whoMarkup(s);
-    btn.setAttribute('aria-pressed', String(s.id === data.activeSheetId));
-    btn.addEventListener('click', () => pickCharacter(campaignId, s.id, who));
-    list.appendChild(btn);
+    // row = main switch button + (when the sheet traces to a library
+    // character) a full-app exit chip; the chip is the only way to edit.
+    const row = document.createElement('div');
+    row.className = 'chooser-item';
+    row.setAttribute('aria-pressed', String(s.id === data.activeSheetId));
+    const main = document.createElement('button');
+    main.className = 'item-main';
+    main.innerHTML = whoMarkup(s);
+    main.addEventListener('click', () => pickCharacter(campaignId, s.id, who));
+    row.appendChild(main);
+    if (s.libraryCharacterId) {
+      row.appendChild(extChip(`/characters/${s.libraryCharacterId}`, 'Open this character in the full app'));
+    }
+    list.appendChild(row);
   }
   $('char-chooser').hidden = false;
 }
@@ -175,6 +214,7 @@ async function brandFooter() {
   const foot = $('brand-footer');
   try {
     const h = await api('/api/health');
+    ogmBase = ogmBase || h.origin || null;
     $('server-name').textContent = h.server || '';
     $('conn-link').href = h.origin || '#';
     foot.classList.toggle('offline', !h.up);
