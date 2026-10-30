@@ -159,7 +159,7 @@ input:focus, textarea:focus { outline: 1px solid var(--accent); }
 @keyframes gw { 30% { opacity: 1; } }
 /* dice rolls: quiet inline pill after the main app's chronicle card */
 .rollchip[data-roll]:empty { display: none; } /* a marker whose roll predates the snapshot's window */
-.rollchip { display: inline-flex; align-items: baseline; gap: .35em; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; font-size: 0.78rem; line-height: 1.7; border: 1px solid #3a352c; border-radius: 999px; padding: 1px 9px; margin: 2px 4px 2px 0; color: var(--dim); background: rgba(255,255,255,.03); white-space: nowrap; }
+.rollchip { display: inline-block; vertical-align: middle; max-width: 100%; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; font-size: 0.78rem; line-height: 1.7; border: 1px solid #3a352c; border-radius: 10px; padding: 1px 9px; margin: 2px 4px 2px 0; color: var(--dim); background: rgba(255,255,255,.03); overflow-wrap: break-word; }
 .rollchip b { color: var(--text); font-weight: 700; }
 .rollchip.pass b { color: #9fb37a; }
 .rollchip.fail b { color: #c96f5e; }
