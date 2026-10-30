@@ -554,6 +554,59 @@ const mod = (score) => Math.floor(((Number(score) || 10) - 10) / 2);
 const signed = (n) => (n >= 0 ? '+' : '') + n;
 const pretty = (id, names) => names[id] || String(id).replace(/_/g, ' ');
 
+// ---------- sheet: rulebook details on tap (features, feats, spells) ----------
+const escapeRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+// Name -> rulebook text, cached locally. Spells land on their own page;
+// class features are sliced out of their class page under the matched
+// heading, so a level table row never gets mistaken for the definition.
+async function entryDetail(name) {
+  const key = `ogml_rulebook_${name.toLowerCase()}`;
+  try {
+    const cached = localStorage.getItem(key);
+    if (cached) return cached === '' ? null : cached;
+  } catch { /* storage off: fetch every time */ }
+  let text = null;
+  try {
+    const { hits = [] } = await (await fetch(`/api/rulebook/search?q=${encodeURIComponent(name)}`)).json();
+    const q = name.toLowerCase();
+    const hit = hits.find((h) => (h.title || '').toLowerCase() === q)
+      || hits.find((h) => (h.heading || '').toLowerCase() === q)
+      || hits[0];
+    if (hit) {
+      const page = await (await fetch(`/api/rulebook/pages/${hit.page}`)).json();
+      const md = (page.page && page.page.md) || '';
+      const start = hit.heading ? md.search(new RegExp(`^#{2,4} ${escapeRe(hit.heading)}\\s*$`, 'm')) : 0;
+      if (start >= 0) {
+        const rest = md.slice(start).split('\n');
+        const body = [];
+        for (let i = 1; i < rest.length; i++) {
+          if (/^#{2,4} /.test(rest[i])) break;
+          body.push(rest[i]);
+        }
+        text = body.join('\n').replace(/\n{3,}/g, '\n\n').trim();
+      }
+    }
+  } catch { /* offline or no rulebook: silent, row just stays collapsed */ }
+  try { localStorage.setItem(key, text ?? ''); } catch { /* ignore */ }
+  return text;
+}
+
+// One detail open per sheet section; tapping the same name again closes it.
+async function tapDetail(sec, name, det) {
+  const open = !det.hidden;
+  for (const d of sec.querySelectorAll('.feat-detail')) d.hidden = true;
+  if (open) return;
+  det.hidden = false;
+  if (det.dataset.loaded !== name) {
+    det.textContent = '…';
+    const md = await entryDetail(name);
+    if (!md) { det.hidden = true; return; }
+    det.innerHTML = richBody(md).replace(/\n/g, '<br>'); // richBody esc()s first
+    det.dataset.loaded = name;
+  }
+}
+
 function sheetSection(title, icon) {
   const sec = document.createElement('section');
   sec.className = 'sheet-sec';
@@ -765,10 +818,18 @@ function renderSheet() {
     }
     const spellChips = (title, list) => {
       if (!list?.length) return;
-      const row = document.createElement('p');
-      row.className = 'prof-line';
+      const row = document.createElement('div');
+      row.className = 'prof-line spell-row';
       row.innerHTML = `<b>${title}</b> `;
-      row.appendChild(chip(list.join(', '), 'plain'));
+      const det = document.createElement('div');
+      det.className = 'feat-detail';
+      det.hidden = true;
+      for (const n of list) {
+        const c = chip(n, 'plain tap');
+        c.addEventListener('click', () => tapDetail(sec, n, det));
+        row.appendChild(c);
+      }
+      row.appendChild(det);
       sec.appendChild(row);
     };
     spellChips('Cantrips', sp.cantrips);
@@ -787,7 +848,13 @@ function renderSheet() {
     for (const f of feats) {
       const li = document.createElement('li');
       const src = f.source ? ` <small>${esc(f.source)}${f.level ? ` · lv ${esc(f.level)}` : ''}</small>` : '';
-      li.innerHTML = `${esc(f.name || f)}${src}`;
+      li.innerHTML = `${esc(f.name || f)}${src}`; // esc()'d name + fixed small tags only
+      const det = document.createElement('div');
+      det.className = 'feat-detail';
+      det.hidden = true;
+      li.appendChild(det);
+      li.classList.add('tap');
+      li.addEventListener('click', () => tapDetail(sec, f.name || String(f), det));
       list.appendChild(li);
     }
     sec.appendChild(list);
