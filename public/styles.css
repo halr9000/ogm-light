@@ -151,6 +151,12 @@ input:focus, textarea:focus { outline: 1px solid var(--accent); }
 .msg.system { align-self: center; text-align: center; color: var(--dim); font-size: 0.81rem; }
 .msg.ooc .who { color: var(--dim); }
 .msg.ooc .body { color: var(--dim); font-style: italic; }
+/* waiting: three dots pulsing in turn while the GM writes */
+#gm-waiting { display: flex; gap: 5px; padding: 12px 2px 2px; }
+#gm-waiting i { width: 5px; height: 5px; border-radius: 50%; background: var(--dim); opacity: 0.3; animation: gw 1.3s ease-in-out infinite; }
+#gm-waiting i:nth-child(2) { animation-delay: 0.18s; }
+#gm-waiting i:nth-child(3) { animation-delay: 0.36s; }
+@keyframes gw { 30% { opacity: 1; } }
 #new-msgs { position: absolute; bottom: 130px; left: 50%; transform: translateX(-50%); }
 #new-msgs button { background: var(--accent); color: #14120f; border-radius: 999px; padding: 6px 14px; font-weight: 700; }
 

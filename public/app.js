@@ -169,7 +169,7 @@ function connectStream() {
   if (state.es) state.es.close();
   const es = new EventSource(`/api/campaigns/${state.campaignId}/events?lastSeq=${state.lastSeq}`);
   state.es = es;
-  const onMessage = (e) => {
+  const onMessage = (e, type = '') => {
     let ev;
     try { ev = JSON.parse(e.data); } catch { return; }
     if (e.lastEventId) state.lastSeq = Math.max(state.lastSeq, Number(e.lastEventId) || 0);
@@ -177,11 +177,14 @@ function connectStream() {
     if (msg && msg.seq && !state.messages.some((m) => m.seq === msg.seq)) {
       state.messages.push(msg);
       state.lastSeq = Math.max(state.lastSeq, msg.seq);
-      renderMessage(msg);
+      // live for a brand-new message: that is what wakes auto narration.
+      // An update to an old message must not start the DM's voice again.
+      renderMessage(msg, type === 'message_added');
     }
     if (msg?.characterId || ev.sheet) loadSheet();
+    if (type === 'message_added' && msg?.authorType === 'dm') hideWaiting();
   };
-  for (const type of ['message_added', 'message_updated']) es.addEventListener(type, onMessage);
+  for (const type of ['message_added', 'message_updated']) es.addEventListener(type, (e) => onMessage(e, type));
   es.addEventListener('whisper_activity', () => { refreshWhispers(); });
   // a freshly rendered take just landed: file it, and sound it if auto mode
   // was waiting for exactly this passage
@@ -273,6 +276,7 @@ function renderMessage(m, live = false) {
 // The private line with the GM, set apart from table talk.
 function renderWhisper(w) {
   state.whisperIds.add(w.id);
+  if (w.direction === 'to_player') hideWaiting(); // the GM answered
   const div = document.createElement('div');
   div.className = 'msg whisper ' + (w.direction === 'to_player' ? 'from-dm' : 'to-dm');
   const who = w.direction === 'to_player' ? 'GM' : (state.names[w.characterId] || 'You');
@@ -319,6 +323,21 @@ $('seg-more').addEventListener('click', () => {
   }
 });
 
+// waiting: three quiet dots while the GM writes the next beat; no text,
+// the pulse alone says "on its way" and goes away the moment it lands.
+function showWaiting() {
+  hideWaiting();
+  const w = document.createElement('div');
+  w.id = 'gm-waiting';
+  w.innerHTML = '<i></i><i></i><i></i>';
+  const el = $('transcript');
+  el.appendChild(w);
+  el.scrollTop = el.scrollHeight;
+}
+function hideWaiting() {
+  document.querySelector('#gm-waiting')?.remove();
+}
+
 $('composer').addEventListener('submit', async (e) => {
   e.preventDefault();
   const text = $('action-text').value.trim();
@@ -343,6 +362,7 @@ $('composer').addEventListener('submit', async (e) => {
     try { localStorage.removeItem(`ogml_draft_${state.campaignId}`); } catch {}
     $('new-msgs').hidden = true;
     $('transcript').scrollTop = $('transcript').scrollHeight;
+    showWaiting();
   } catch (err) {
     alert(err.message);
   } finally {
