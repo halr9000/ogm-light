@@ -125,9 +125,9 @@ input:focus, textarea:focus { outline: 1px solid var(--accent); }
 /* the play button is the lamp of the table: a brass ring at rest,
    lit — filled and glowing warm — while its line sounds */
 .play-btn {
-  width: 27px; height: 27px; padding: 0; flex: none; align-self: center;
+  width: 30px; height: 30px; padding: 0; flex: none; align-self: center;
   display: grid; place-items: center;
-  border: 1px solid rgba(201, 163, 92, 0.45); border-radius: 999px;
+  border: 1.5px solid rgba(201, 163, 92, 0.55); border-radius: 999px;
   color: var(--accent);
   transition: background 0.18s ease, color 0.18s ease, border-color 0.18s ease, box-shadow 0.3s ease, transform 0.12s ease;
 }
