@@ -607,6 +607,30 @@ async function tapDetail(sec, name, det) {
   }
 }
 
+// A spell group renders like the features list: quiet label, one accordion
+// row per spell, description expands under the tapped row.
+function spellGroup(sec, title, list) {
+  if (!list?.length) return;
+  const head = document.createElement('p');
+  head.className = 'prof-line';
+  head.innerHTML = `<b>${esc(title)}</b>`; // fixed internal label only
+  sec.appendChild(head);
+  const ul = document.createElement('ul');
+  ul.className = 'feat-list spell-list';
+  for (const n of list) {
+    const li = document.createElement('li');
+    li.textContent = n;
+    const det = document.createElement('div');
+    det.className = 'feat-detail';
+    det.hidden = true;
+    li.appendChild(det);
+    li.classList.add('tap');
+    li.addEventListener('click', () => tapDetail(sec, n, det));
+    ul.appendChild(li);
+  }
+  sec.appendChild(ul);
+}
+
 function sheetSection(title, icon) {
   const sec = document.createElement('section');
   sec.className = 'sheet-sec';
@@ -816,26 +840,10 @@ function renderSheet() {
       row.innerHTML = `<b>${n}${n === 1 ? 'st' : n === 2 ? 'nd' : n === 3 ? 'rd' : 'th'}</b><span class="slotbar">${pips}</span><small>${left}/${max}</small>`;
       sec.appendChild(row);
     }
-    const spellChips = (title, list) => {
-      if (!list?.length) return;
-      const row = document.createElement('div');
-      row.className = 'prof-line spell-row';
-      row.innerHTML = `<b>${title}</b> `;
-      const det = document.createElement('div');
-      det.className = 'feat-detail';
-      det.hidden = true;
-      for (const n of list) {
-        const c = chip(n, 'plain tap');
-        c.addEventListener('click', () => tapDetail(sec, n, det));
-        row.appendChild(c);
-      }
-      row.appendChild(det);
-      sec.appendChild(row);
-    };
-    spellChips('Cantrips', sp.cantrips);
-    spellChips('Prepared', sp.prepared);
-    spellChips('Known', sp.known);
-    spellChips('Spellbook', sp.spellbook);
+    spellGroup(sec, 'Cantrips', sp.cantrips);
+    spellGroup(sec, 'Prepared', sp.prepared);
+    spellGroup(sec, 'Known', sp.known);
+    spellGroup(sec, 'Spellbook', sp.spellbook);
     el.appendChild(sec);
   }
 

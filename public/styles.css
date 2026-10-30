@@ -283,9 +283,7 @@ input:focus, textarea:focus { outline: 1px solid var(--accent); }
 #sheet .feat-list small { color: var(--dim); }
 #sheet .feat-list li.tap { cursor: pointer; }
 #sheet .feat-list li.tap:hover { color: var(--accent); }
-#sheet .chip.tap { cursor: pointer; border-bottom: 1px dotted #4a4436; }
-#sheet .chip.tap:hover { color: var(--accent); }
-#sheet .spell-row { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 6px; }
+#sheet .spell-list { margin-top: -4px; }
 #sheet .feat-detail { width: 100%; font-family: var(--serif); font-size: 0.84rem; line-height: 1.55; color: #b5ac9c; padding: 6px 0 4px; }
 #sheet .sheet-note { white-space: pre-wrap; font-size: 0.81rem; color: var(--dim); margin: 4px 0; }
 #sheet summary { cursor: pointer; color: var(--accent); font-size: 0.81rem; }
