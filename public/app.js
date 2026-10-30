@@ -166,6 +166,7 @@ document.querySelector('#table-begin button').addEventListener('click', async ()
     await api(`/api/campaigns/${state.campaignId}`, { method: 'PATCH', body: JSON.stringify({ status: 'active' }) });
     $('table-begin').hidden = true;
     $('composer').hidden = false;
+    flashNotice('✓', true);
   } catch (err) {
     flashNotice(err.message);
   } finally {
@@ -418,6 +419,7 @@ $('composer').addEventListener('submit', async (e) => {
     try { localStorage.removeItem(`ogml_draft_${state.campaignId}`); } catch {}
     $('new-msgs').hidden = true;
     $('transcript').scrollTop = $('transcript').scrollHeight;
+    clearNotice();
     showWaiting();
   } catch (err) {
     flashNotice(err.message);
@@ -1145,16 +1147,39 @@ function flashSettings(text) {
   flashTimer = setTimeout(() => el.classList.remove('show'), 1800);
 }
 
-// errors: one quiet ember line above the composer, gone in a few seconds —
-// never a modal
+// notices: errors stay put until the next move — a copy icon rides along so
+// the text can go to support; successes flash green once and fade. Never a modal
 let noticeTimer = null;
-function flashNotice(text) {
+function flashNotice(text, ok = false) {
   const el = $('notice');
-  el.textContent = text;
-  el.classList.add('show');
   clearTimeout(noticeTimer);
-  noticeTimer = setTimeout(() => el.classList.remove('show'), 4000);
+  $('notice-text').textContent = text;
+  el.classList.toggle('ok', ok);
+  el.classList.add('show');
+  $('notice-copy').hidden = ok || !text;
+  if (ok) noticeTimer = setTimeout(() => el.classList.remove('show'), 4000);
 }
+function clearNotice() {
+  clearTimeout(noticeTimer);
+  $('notice').classList.remove('show');
+}
+$('notice-copy').addEventListener('click', async () => {
+  const text = $('notice-text').textContent;
+  try {
+    if (navigator.clipboard?.writeText) await navigator.clipboard.writeText(text);
+    else {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      ta.remove();
+    }
+    const b = $('notice-copy');
+    b.classList.add('did');
+    setTimeout(() => b.classList.remove('did'), 1200);
+  } catch {}
+});
 
 function openSettings() {
   const el = $('settings');

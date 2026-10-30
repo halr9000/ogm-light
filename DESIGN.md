@@ -218,8 +218,9 @@ are always 1px seams, never 2px+ outlines; focus is a 1px Brass outline.
 
 ### Error Flash
 - **Notice line:** errors surface as one centered Ember Red line just above
-  the composer — the same flash-then-fade pattern as the settings line, ~4s.
-  Modals are never used for errors.
+  the composer and stay there until the next move — a dim copy icon rides at
+  the end; tapping it hands the text to the clipboard and the icon blinks
+  green. Successes flash one green line and fade (~4s). Modals are never used.
 
 ### Playback Bar
 - Slides in above the composer only while a track plays: play/pause toggle

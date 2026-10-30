@@ -5,6 +5,7 @@
   --dim: #8d8577;
   --accent: #c9a35c;
   --danger: #b04a3a;
+  --ok: #6b8f6b;
   --serif: 'Lora', Georgia, 'Iowan Old Style', 'Palatino Linotype', 'Book Antiqua', serif;
   --radius: 12px;
   --textscale: 1; /* user text-size setting; max() below enforces the 16px floor */
@@ -252,9 +253,13 @@ input:focus, textarea:focus { outline: 1px solid var(--accent); }
 }
 #settings-flash.show { opacity: 1; }
 
-/* error flash: the same one-line-then-gone pattern, in ember */
-#notice { margin: 0 12px 2px; text-align: center; font-size: 0.81rem; color: var(--danger); opacity: 0; transition: opacity 0.5s ease; }
+/* notices: errors persist (with a copy-out icon); successes flash green */
+#notice { margin: 0 12px 2px; text-align: center; font-size: 0.81rem; color: var(--danger); opacity: 0; transition: opacity 0.5s ease; display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 1.2em; }
 #notice.show { opacity: 1; }
+#notice.ok { color: var(--ok); }
+#notice-copy { border: 0; background: none; padding: 2px; color: var(--dim); cursor: pointer; line-height: 0; border-radius: 4px; }
+#notice-copy svg { width: 14px; height: 14px; }
+#notice-copy.did { color: var(--ok); }
 
 /* sheet drawer */
 #sheet {
