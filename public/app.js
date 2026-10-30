@@ -980,6 +980,7 @@ function flashSettings(text) {
 
 function openSettings() {
   const el = $('settings');
+  if (!el.hidden) { el.hidden = true; return; } // the button toggles
   // sit just below whichever bar is visible — the bar grows with text scale
   const bar = document.querySelector('#home:not([hidden]) .bar, #table:not([hidden]) .bar');
   if (bar) el.style.top = `calc(${Math.round(bar.getBoundingClientRect().bottom)}px + 6px)`;
