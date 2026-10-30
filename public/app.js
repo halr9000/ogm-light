@@ -605,6 +605,9 @@ async function tapDetail(sec, name, det) {
     det.innerHTML = richBody(md).replace(/\n/g, '<br>'); // richBody esc()s first
     det.dataset.loaded = name;
   }
+  // Closing the previous entry can collapse rows above and yank the tapped
+  // one off-screen; nudge it back into view once its content is sized.
+  det.parentElement?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
 }
 
 // A spell group renders like the features list: quiet label, one accordion
