@@ -8,10 +8,10 @@ web
 
 ## Users
 
-A solo player running self-hosted Open Game Master (OGM) campaigns on
-his home server (the OGM host). Primary situation: marathon solo D&D 5e play sessions
-from a phone browser, on the home LAN. He is also the operator who deploys
-and maintains the app.
+A solo player running self-hosted Open Game Master (OGM) campaigns on a
+home server. Primary situation: marathon solo D&D 5e play sessions from a
+phone browser, on the local network. The player is also the operator who
+deploys and maintains the app.
 
 ## Product Purpose
 
@@ -31,9 +31,9 @@ delivery that makes the client trivially self-hostable beside OGM.
 
 ## Operating Context
 
-- Runs on the OGM host (the OGM host) beside the OGM container; reaches it via
-  localhost HTTP. Deployed at `http://ogmhost.example:3222` and via the Caddy
-  HTTPS portal route `https://ogmhost.example`.
+- Runs beside the OGM container on the same host; reaches it via localhost
+  HTTP. Served on the local network over plain HTTP, and via a
+  reverse-proxy HTTPS route where one exists.
 - Used on phones in a browser during long play sessions; the phone sleeps
   and wakes mid-session, and the app must recover cleanly.
 - Auth reuses OGM accounts; the proxy rewrites OGM's `odm_session` cookie to
@@ -63,11 +63,10 @@ delivery that makes the client trivially self-hostable beside OGM.
 ## Evidence on Hand
 
 - Working deployment at `:3222`, verified end-to-end (login, tables,
-  transcript, composer, sheet) from real browser and user's phone.
-- User screenshots (2026-10-29) confirm login, table list, and composer
-  render correctly on a phone.
-- Full git history in `the local checkout`, pushed to
-  github.com/halr9000/ogm-light.
+  transcript, composer, sheet) from a real browser and a phone.
+- Phone screenshots (2026-10-29) confirm login, table list, and composer
+  render correctly; they live in `docs/`.
+- Full git history, pushed to this repository's GitHub home.
 
 ## Product Principles
 
