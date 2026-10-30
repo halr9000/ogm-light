@@ -1,23 +1,62 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-29T10:06:04-04:00",
+  "generatedAt": "2026-10-30T08:58:19-04:00",
   "title": "Design System: ogm-light",
   "extensions": {
     "colorMeta": {
-      "primary": { "role": "primary", "displayName": "Brass", "canonical": "#c9a35c" },
-      "bg": { "role": "neutral", "displayName": "Snuffed Lantern", "canonical": "#14120f" },
-      "panel": { "role": "neutral", "displayName": "Worn Tabletop", "canonical": "#1e1b16" },
-      "text": { "role": "neutral", "displayName": "Parchment", "canonical": "#e8e2d5" },
-      "dim": { "role": "neutral", "displayName": "Dust", "canonical": "#8d8577" },
-      "danger": { "role": "semantic", "displayName": "Ember Red", "canonical": "#b04a3a" },
-      "player-bubble": { "role": "semantic", "displayName": "Ink Blue", "canonical": "#26303f" },
-      "dm-name": { "role": "semantic", "displayName": "Moss", "canonical": "#9fb37a" }
+      "primary": {
+        "role": "primary",
+        "displayName": "Brass",
+        "canonical": "#c9a35c"
+      },
+      "bg": {
+        "role": "neutral",
+        "displayName": "Snuffed Lantern",
+        "canonical": "#14120f"
+      },
+      "panel": {
+        "role": "neutral",
+        "displayName": "Worn Tabletop",
+        "canonical": "#1e1b16"
+      },
+      "text": {
+        "role": "neutral",
+        "displayName": "Parchment",
+        "canonical": "#e8e2d5"
+      },
+      "dim": {
+        "role": "neutral",
+        "displayName": "Dust",
+        "canonical": "#8d8577"
+      },
+      "danger": {
+        "role": "semantic",
+        "displayName": "Ember Red",
+        "canonical": "#b04a3a"
+      },
+      "player-bubble": {
+        "role": "semantic",
+        "displayName": "Ink Blue",
+        "canonical": "#26303f"
+      },
+      "dm-name": {
+        "role": "semantic",
+        "displayName": "Moss",
+        "canonical": "#9fb37a"
+      }
     },
     "typographyMeta": {
-      "narration": { "displayName": "Narration", "purpose": "DM message bodies only — the narration serif marks the fiction." }
+      "narration": {
+        "displayName": "Narration",
+        "purpose": "DM message bodies only — the narration serif marks the fiction."
+      }
     },
     "shadows": [
-      { "name": "drawer", "value": "-8px 0 24px rgb(0 0 0 / 0.5)", "purpose": "The only shadow: separating the sheet drawer overlay from the page." }
+      {
+        "name": "drawer",
+        "value": "-8px 0 24px rgb(0 0 0 / 0.5)",
+        "purpose": "The only shadow: separating the sheet drawer overlay from the page."
+      }
     ],
     "motion": [],
     "breakpoints": []
@@ -102,6 +141,14 @@
       "description": "Appears above the composer only while a track plays: play/pause plus a bare seek slider; fades out at track end.",
       "html": "<div class=\"ds-playbar\"><button>⏸</button><input type=\"range\" min=\"0\" max=\"1000\" value=\"160\"></div>",
       "css": ".ds-playbar { display: flex; align-items: center; gap: 10px; background: #1e1b16; border-top: 1px solid #2a2620; padding: 10px 14px; } .ds-playbar button { background: none; border: none; color: #e8e2d5; cursor: pointer; } .ds-playbar input[type=range] { flex: 1; accent-color: #c9a35c; }"
+    },
+    {
+      "name": "Error Flash",
+      "kind": "status",
+      "refersTo": "notice",
+      "description": "Errors surface as one centered Ember Red flash line above the composer, then fade — never a modal.",
+      "html": "<p id=\"notice\" role=\"status\" aria-live=\"polite\">The adventure has not started yet.</p>",
+      "css": "#notice { margin: 0 12px 2px; text-align: center; font-size: 0.81rem; color: #b04a3a; opacity: 0; transition: opacity 0.5s ease; } #notice.show { opacity: 1; }"
     }
   ],
   "narrative": {
@@ -114,9 +161,21 @@
       "Full-viewport screens, no scrolling chrome"
     ],
     "rules": [
-      { "name": "The One Lamp Rule", "body": "Brass is ≤10% of any screen. If two elements on a screen are gold, one of them is lying.", "section": "colors" },
-      { "name": "The Serif Is The DM Rule", "body": "The narration serif appears only on DM narration. Never for buttons or controls.", "section": "typography" },
-      { "name": "The Drawer Casts the Only Shadow Rule", "body": "If a new surface casts a shadow, it had better be an overlay.", "section": "elevation" }
+      {
+        "name": "The One Lamp Rule",
+        "body": "Brass is ≤10% of any screen. If two elements on a screen are gold, one of them is lying.",
+        "section": "colors"
+      },
+      {
+        "name": "The Serif Is The DM Rule",
+        "body": "The narration serif appears only on DM narration. Never for buttons or controls.",
+        "section": "typography"
+      },
+      {
+        "name": "The Drawer Casts the Only Shadow Rule",
+        "body": "If a new surface casts a shadow, it had better be an overlay.",
+        "section": "elevation"
+      }
     ],
     "dos": [
       "Do use Brass for exactly one 'active/go' element per state.",

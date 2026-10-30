@@ -126,11 +126,12 @@ async function openTable(c) {
   $('transcript').innerHTML = '';
   try {
     // Snapshot, private line with the GM, and narration takes in one round.
-    const [data, wp, camp] = await Promise.all([
+    const [data, wp, raw] = await Promise.all([
       api(`/api/campaigns/${c.id}/messages?limit=30`),
       api(`/api/campaigns/${c.id}/whispers`).catch(() => null),
       api(`/api/campaigns/${c.id}`).catch(() => null),
     ]);
+    const camp = raw?.campaign || raw; // the snapshot nests the campaign
     state.names = data.names || {};
     state.messages = (data.messages || []).slice().sort((a, b) => a.seq - b.seq);
     state.olderBefore = data.olderBefore;
@@ -138,6 +139,9 @@ async function openTable(c) {
     state.narration = camp?.narrationAudio || {};
     state.rolls = new Map((camp?.rolls || []).filter((r) => r && r.id).map((r) => [r.id, r]));
     $('table-begin').hidden = camp?.status !== 'lobby';
+    // in the lobby the only move is Begin; a live composer there just invites
+    // a rejection the moment the GM tools wake up
+    $('composer').hidden = camp?.status !== 'active';
     state.whisperIds = new Set();
     renderTimeline(wp?.whispers ? wp.whispers.slice().reverse() : []);
     connectStream();
@@ -152,6 +156,7 @@ $('back').addEventListener('click', async () => {
   state.pendingAuto = null;
   $('table-begin').hidden = true;
   try { await home(); } catch {}
+  $('composer').hidden = false;
 });
 
 document.querySelector('#table-begin button').addEventListener('click', async () => {
@@ -160,9 +165,11 @@ document.querySelector('#table-begin button').addEventListener('click', async ()
   try {
     await api(`/api/campaigns/${state.campaignId}`, { method: 'PATCH', body: JSON.stringify({ status: 'active' }) });
     $('table-begin').hidden = true;
+    $('composer').hidden = false;
   } catch (err) {
-    btn.textContent = err.message;
-    setTimeout(() => { btn.textContent = 'Begin'; btn.disabled = false; }, 2600);
+    flashNotice(err.message);
+  } finally {
+    btn.disabled = false;
   }
 });
 
@@ -413,7 +420,7 @@ $('composer').addEventListener('submit', async (e) => {
     $('transcript').scrollTop = $('transcript').scrollHeight;
     showWaiting();
   } catch (err) {
-    alert(err.message);
+    flashNotice(err.message);
   } finally {
     $('send').disabled = false;
   }
@@ -1136,6 +1143,17 @@ function flashSettings(text) {
   el.classList.add('show');
   clearTimeout(flashTimer);
   flashTimer = setTimeout(() => el.classList.remove('show'), 1800);
+}
+
+// errors: one quiet ember line above the composer, gone in a few seconds —
+// never a modal
+let noticeTimer = null;
+function flashNotice(text) {
+  const el = $('notice');
+  el.textContent = text;
+  el.classList.add('show');
+  clearTimeout(noticeTimer);
+  noticeTimer = setTimeout(() => el.classList.remove('show'), 4000);
 }
 
 function openSettings() {

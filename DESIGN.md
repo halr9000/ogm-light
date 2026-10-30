@@ -216,6 +216,11 @@ are always 1px seams, never 2px+ outlines; focus is a 1px Brass outline.
   replies (DM narration, GM whisper replies). While playing it shows a
   pause glyph.
 
+### Error Flash
+- **Notice line:** errors surface as one centered Ember Red line just above
+  the composer — the same flash-then-fade pattern as the settings line, ~4s.
+  Modals are never used for errors.
+
 ### Playback Bar
 - Slides in above the composer only while a track plays: play/pause toggle
   plus a bare seek slider (no time readouts). Fades out at track end.

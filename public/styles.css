@@ -252,6 +252,10 @@ input:focus, textarea:focus { outline: 1px solid var(--accent); }
 }
 #settings-flash.show { opacity: 1; }
 
+/* error flash: the same one-line-then-gone pattern, in ember */
+#notice { margin: 0 12px 2px; text-align: center; font-size: 0.81rem; color: var(--danger); opacity: 0; transition: opacity 0.5s ease; }
+#notice.show { opacity: 1; }
+
 /* sheet drawer */
 #sheet {
   position: absolute; inset: 0 0 0 auto; width: min(88vw, 380px);
