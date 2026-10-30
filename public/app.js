@@ -103,11 +103,13 @@ async function home() {
       // leaves the quiet "no character" state. innerHTML is safe: the icon
       // class comes from the CLASS_ICONS whitelist, name/class go through esc().
       api(`/api/campaigns/${c.id}/sheet`).then(({ sheet }) => {
-        if (!sheet) { who.textContent = 'no character'; who.classList.add('none'); return; }
-        const icon = CLASS_ICONS[String(sheet.class || '').toLowerCase()] || 'ra-pawn';
-        who.innerHTML = `<i class="ra ${icon}" aria-hidden="true"></i>${esc(sheet.name || '')}` +
-          (sheet.class ? ` <span class="cls">· ${esc(String(sheet.class).toLowerCase())}</span>` : '');
+        who.classList.toggle('none', !sheet);
+        if (!sheet) { who.textContent = 'no character'; return; }
+        who.innerHTML = whoMarkup(sheet);
       }).catch(() => { who.textContent = 'no character'; who.classList.add('none'); });
+      // tappable when the table holds several of your characters: opens the
+      // chooser (a no-op fetch when you own only one, then it stays quiet).
+      who.addEventListener('click', (e) => { e.stopPropagation(); openChooser(c.id, who); });
       b.addEventListener('click', () => openTable(c));
       list.appendChild(b);
     }
@@ -116,6 +118,57 @@ async function home() {
     throw err;
   }
 }
+
+// one character row markup, shared by the table list and the switcher.
+// innerHTML is safe: icon class from the CLASS_ICONS whitelist, text via esc().
+function whoMarkup(sheet) {
+  const icon = CLASS_ICONS[String(sheet.class || '').toLowerCase()] || 'ra-pawn';
+  return `<i class="ra ${icon}" aria-hidden="true"></i>${esc(sheet.name || '')}` +
+    (sheet.class ? ` <span class="cls">· ${esc(String(sheet.class).toLowerCase())}</span>` : '');
+}
+
+/* ---------- character switcher (multi-character tables) ---------- */
+
+async function openChooser(campaignId, who) {
+  let data;
+  try { data = await api(`/api/campaigns/${campaignId}`); }
+  catch (err) { flashNotice(err.message); return; }
+  const owned = (data.sheets || []).filter((s) => s.userId === data.me.id && !s.isCompanion);
+  if (owned.length <= 1) return; // single character: the row stays inert
+  const list = $('chooser-list');
+  list.innerHTML = '';
+  for (const s of owned) {
+    const btn = document.createElement('button');
+    btn.className = 'chooser-item';
+    btn.innerHTML = whoMarkup(s);
+    btn.setAttribute('aria-pressed', String(s.id === data.activeSheetId));
+    btn.addEventListener('click', () => pickCharacter(campaignId, s.id, who));
+    list.appendChild(btn);
+  }
+  $('char-chooser').hidden = false;
+}
+
+async function pickCharacter(campaignId, characterId, who) {
+  try {
+    await api(`/api/campaigns/${campaignId}/sheet/switch`, {
+      method: 'POST',
+      body: JSON.stringify({ characterId }),
+    });
+    closeChooser();
+    // the active sheet is the source of truth for the row (list data can
+    // lag: playingAs points at the first sheet, not the active one).
+    const { sheet } = await api(`/api/campaigns/${campaignId}/sheet`);
+    if (sheet) { who.innerHTML = whoMarkup(sheet); who.classList.remove('none'); }
+  } catch (err) { flashNotice(err.message); } // 409 mid-fight: server's wording
+}
+
+function closeChooser() { $('char-chooser').hidden = true; }
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeChooser(); });
+document.addEventListener('click', (e) => {
+  if ($('char-chooser').hidden) return;
+  if (e.target.closest('#char-chooser') || e.target.closest('.who')) return;
+  closeChooser();
+});
 
 // footer identity + connection state, from our own /api/health
 async function brandFooter() {
