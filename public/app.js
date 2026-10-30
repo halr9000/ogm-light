@@ -597,18 +597,19 @@ async function entryDetail(name, exact = false) {
 }
 
 // One detail open per sheet section; tapping the same name again closes it.
+// Nothing shows while the rulebook lookup runs: an empty expanding box or
+// "…" reads as a flicker, so the detail only appears once text is in hand.
 async function tapDetail(sec, name, det, exact = false) {
   const open = !det.hidden;
   for (const d of sec.querySelectorAll('.feat-detail')) d.hidden = true;
   if (open) return;
+  det.dataset.open = name; // intent, checked after the async lookup
+  const md = await entryDetail(name, exact);
+  if (det.dataset.open !== name) return; // another tap took over while loading
+  if (!md) return; // no entry for this name: nothing opens
+  det.innerHTML = richBody(md).replace(/\n/g, '<br>'); // richBody esc()s first
+  det.dataset.loaded = name;
   det.hidden = false;
-  if (det.dataset.loaded !== name) {
-    det.textContent = '…';
-    const md = await entryDetail(name, exact);
-    if (!md) { det.hidden = true; return; }
-    det.innerHTML = richBody(md).replace(/\n/g, '<br>'); // richBody esc()s first
-    det.dataset.loaded = name;
-  }
   // Closing the previous entry can collapse rows above and yank the tapped
   // one off-screen; nudge it back into view once its content is sized.
   det.parentElement?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
