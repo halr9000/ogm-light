@@ -296,12 +296,15 @@ function fillChips(rollId, root) {
 
 function appendMsg(div, m) {
   const el = $('transcript');
-  const nearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 120;
+  // pin only when the reader is already resting on the bottom line; anything
+  // above that (even a few px, e.g. after the throbber collapses) is reading
+  // position and must not be yanked when a reply lands — the pill covers it
+  const nearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 2;
   el.appendChild(div);
-  if (nearBottom || m.authorType !== 'player') {
-    // keep the newest line visible unless the reader scrolled up mid-history
-    if (nearBottom) el.scrollTop = el.scrollHeight;
-    else if (m.authorType === 'dm') $('new-msgs').hidden = false;
+  if (nearBottom) {
+    el.scrollTop = el.scrollHeight;
+  } else if (m.authorType === 'dm') {
+    $('new-msgs').hidden = false;
   }
 }
 
