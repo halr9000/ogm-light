@@ -269,6 +269,9 @@ input:focus, textarea:focus { outline: 1px solid var(--accent); }
 #sheet .chip { background: #262219; border-radius: 999px; padding: 3px 10px; font-size: 0.78rem; }
 #sheet .chip.plain { background: none; padding: 0; font-size: 0.81rem; }
 #sheet .chip.bad { background: #3a2320; color: #d98a7c; }
+#sheet .chip.tap { cursor: pointer; }
+#sheet .chip.tap:hover { color: var(--accent); }
+#sheet .chip.tap:has(.feat-detail:not([hidden])) { display: block; flex-basis: 100%; border-radius: 10px; }
 #sheet .prof-line { margin: 0 0 8px; font-size: 0.81rem; line-height: 1.7; }
 #sheet .prof-line b { color: var(--dim); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.6px; margin-right: 4px; }
 #sheet .slot-row { display: flex; align-items: center; gap: 8px; padding: 4px 0; }

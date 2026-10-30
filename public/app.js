@@ -560,8 +560,11 @@ const escapeRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 // Name -> rulebook text, cached locally. Spells land on their own page;
 // class features are sliced out of their class page under the matched
 // heading, so a level table row never gets mistaken for the definition.
-async function entryDetail(name) {
-  const key = `ogml_rulebook_${name.toLowerCase()}`;
+// For gear we match the exact heading, e.g. "### Greataxe" — the search
+// ranks pages by whole-text relevance, and a fuzzy match would happily
+// return "Greataxe of Fire Damage" or "Weapon Properties" for "Greataxe".
+async function entryDetail(name, exact = false) {
+  const key = `ogml_rulebook_${name.toLowerCase()}${exact ? '::x' : ''}`;
   try {
     const cached = localStorage.getItem(key);
     if (cached) return cached === '' ? null : cached;
@@ -570,9 +573,10 @@ async function entryDetail(name) {
   try {
     const { hits = [] } = await (await fetch(`/api/rulebook/search?q=${encodeURIComponent(name)}`)).json();
     const q = name.toLowerCase();
+    // Equipment entries demand a real page of their own: gear searches also
+    // land fuzzy hits like the Weapons chapter, whose text would be wrong.
     const hit = hits.find((h) => (h.title || '').toLowerCase() === q)
-      || hits.find((h) => (h.heading || '').toLowerCase() === q)
-      || hits[0];
+      || (exact ? null : (hits.find((h) => (h.heading || '').toLowerCase() === q) || hits[0]));
     if (hit) {
       const page = await (await fetch(`/api/rulebook/pages/${hit.page}`)).json();
       const md = (page.page && page.page.md) || '';
@@ -593,14 +597,14 @@ async function entryDetail(name) {
 }
 
 // One detail open per sheet section; tapping the same name again closes it.
-async function tapDetail(sec, name, det) {
+async function tapDetail(sec, name, det, exact = false) {
   const open = !det.hidden;
   for (const d of sec.querySelectorAll('.feat-detail')) d.hidden = true;
   if (open) return;
   det.hidden = false;
   if (det.dataset.loaded !== name) {
     det.textContent = '…';
-    const md = await entryDetail(name);
+    const md = await entryDetail(name, exact);
     if (!md) { det.hidden = true; return; }
     det.innerHTML = richBody(md).replace(/\n/g, '<br>'); // richBody esc()s first
     det.dataset.loaded = name;
@@ -894,7 +898,15 @@ function renderSheet() {
     if (gear.length) {
       const wrap = document.createElement('div');
       wrap.className = 'chips';
-      for (const g of gear) wrap.appendChild(chip(g.qty > 1 ? `${g.name} ×${g.qty}` : g.name, '', gearIcon(g)));
+      for (const g of gear) {
+        const c = chip(g.qty > 1 ? `${g.name} ×${g.qty}` : g.name, 'tap', gearIcon(g));
+        const det = document.createElement('div');
+        det.className = 'feat-detail';
+        det.hidden = true;
+        c.appendChild(det);
+        c.addEventListener('click', () => tapDetail(sec, g.name, det, true));
+        wrap.appendChild(c);
+      }
       sec.appendChild(wrap);
     }
     if (s.gold != null || s.copper != null) {
