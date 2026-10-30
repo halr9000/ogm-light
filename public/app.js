@@ -601,7 +601,7 @@ async function entryDetail(name, exact = false) {
 // "…" reads as a flicker, so the detail only appears once text is in hand.
 async function tapDetail(sec, name, det, exact = false) {
   const open = !det.hidden;
-  for (const d of sec.querySelectorAll('.feat-detail')) d.hidden = true;
+  for (const d of sec.querySelectorAll('.feat-detail')) { d.hidden = true; d.removeAttribute('data-open'); }
   if (open) return;
   det.dataset.open = name; // intent, checked after the async lookup
   const md = await entryDetail(name, exact);
