@@ -15,6 +15,7 @@ let state = {
   campaignId: null,
   campaignTitle: '',
   messages: [],        // ascending seq
+  rolls: new Map(),    // roll id -> StoredRoll (or redacted blind roll)
   names: {},
   olderBefore: null,
   lastSeq: 0,
@@ -114,6 +115,7 @@ async function openTable(c) {
   state.campaignTitle = c.title || c.name || 'Table';
   state.messages = [];
   state.lastSeq = 0;
+  state.rolls = new Map();
   state.olderBefore = null;
   state.sheet = null;
   sheetError = '';
@@ -134,6 +136,7 @@ async function openTable(c) {
     state.olderBefore = data.olderBefore;
     state.lastSeq = state.messages.length ? state.messages[state.messages.length - 1].seq : 0;
     state.narration = camp?.narrationAudio || {};
+    state.rolls = new Map((camp?.rolls || []).filter((r) => r && r.id).map((r) => [r.id, r]));
     $('table-begin').hidden = camp?.status !== 'lobby';
     state.whisperIds = new Set();
     renderTimeline(wp?.whispers ? wp.whispers.slice().reverse() : []);
@@ -186,6 +189,16 @@ function connectStream() {
   };
   for (const type of ['message_added', 'message_updated']) es.addEventListener(type, (e) => onMessage(e, type));
   es.addEventListener('whisper_activity', () => { refreshWhispers(); });
+  // A roll just landed: file it, and fill any chip slot that was waiting.
+  es.addEventListener('roll_result', (e) => {
+    try {
+      const p = JSON.parse(e.data);
+      if (p.roll?.id) {
+        state.rolls.set(p.roll.id, p.roll);
+        fillChips(p.roll.id);
+      }
+    } catch {}
+  });
   // a freshly rendered take just landed: file it, and sound it if auto mode
   // was waiting for exactly this passage
   es.addEventListener('tts_ready', (e) => {
@@ -241,13 +254,44 @@ function whoFor(m) {
 // Markdown-lite for DM prose: speaker beats and roll markers become quiet
 // labels, *italics* and **bold** render. Input is esc()'d first, so the
 // tags below are the only markup that can reach innerHTML.
+// A [roll:<uuid>] marker becomes an empty chip slot; rollChipHTML fills it
+// when the roll's data is in state.rolls (open snapshot or roll_result SSE).
 function richBody(text) {
   let s = esc(text)
-    .replace(/\[roll:[0-9a-f-]+\]\n?/gi, '')
+    .replace(/\[roll:([0-9a-f-]{36})\]\n?/gi, (_s, id) => `<span class="rollchip" data-roll="${id}"></span>`)
+    .replace(/\[roll:[^\]]*\]\n?/gi, '')
     .replace(/(^^|\n)\[([^[\]|]+?)\s*\|\s*([^[\]]+)\]\s*/g, '$1<span class="beat">$2 · $3</span> ')
     .replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>')
     .replace(/\*([^*\n]+)\*/g, '<i>$1</i>');
   return s;
+}
+
+// A roll as the table reads it, after the main app's chronicle card:
+// "Goblin · Attack roll — Club vs Aria · 14 vs 15", pass and fail tinted.
+const ROLL_KIND_LABELS = { skill_check: 'Skill check', saving_throw: 'Saving throw', ability_check: 'Ability check', attack: 'Attack roll', damage: 'Damage', initiative: 'Initiative' };
+
+function rollChipHTML(r) {
+  const detail = String(r.detail || '').replaceAll('_', ' ');
+  const label = `${r.attacker?.name ? esc(r.attacker.name) + ' · ' : ''}${ROLL_KIND_LABELS[r.kind] || 'Roll'}${detail ? ` — ${esc(detail)}` : ''}`;
+  if (r.hidden || r.total == null) {
+    return `<span class="rollchip">🎲 ${label} — rolled behind the screen</span>`;
+  }
+  const crit = r.breakdown?.crit;
+  const tone = r.dc != null ? (r.success ? ' pass' : ' fail') : crit === 'nat20' ? ' pass' : crit === 'nat1' ? ' fail' : '';
+  const num = `${r.total}${r.dc != null ? ' vs ' + r.dc : ''}`;
+  // Every server string above passed esc(); kind comes from a fixed enum and
+  // total/dc are JSON numbers, so the outerHTML sink here is fed safe text.
+  return `<span class="rollchip${tone}">🎲 ${label} · <b>${esc(num)}</b></span>`;
+}
+
+// Fill every chip slot this roll answers, however the two events raced.
+// root is the (possibly detached) message being rendered, or the document.
+function fillChips(rollId, root) {
+  const r = state.rolls.get(rollId);
+  if (!r) return;
+  (root || document).querySelectorAll(`.rollchip[data-roll="${rollId}"]`).forEach((sp) => {
+    sp.outerHTML = rollChipHTML(r);
+  });
 }
 
 function appendMsg(div, m) {
@@ -268,6 +312,7 @@ function renderMessage(m, live = false) {
   const body = m.authorType === 'dm' ? richBody(m.content) : esc(m.content);
   div.innerHTML = (who ? `<div class="who"><span>${esc(who)}</span></div>` : '') +
     `<div class="body">${body}</div>`;
+  div.querySelectorAll('.rollchip[data-roll]').forEach((sp) => fillChips(sp.dataset.roll, div));
   if (m.authorType === 'dm') addPlayBtn(div, m);
   appendMsg(div, m);
   if (m.authorType === 'dm' && state.narrate === 'auto' && live) autoPlay(m);
@@ -282,6 +327,7 @@ function renderWhisper(w) {
   const who = w.direction === 'to_player' ? 'GM' : (state.names[w.characterId] || 'You');
   const body = w.direction === 'to_player' ? richBody(w.content) : esc(w.content);
   div.innerHTML = `<div class="who"><span>${esc(who)}</span></div><div class="body">${body}</div>`;
+  div.querySelectorAll('.rollchip[data-roll]').forEach((sp) => fillChips(sp.dataset.roll, div));
   if (w.direction === 'to_player') addPlayBtn(div, w);
   appendMsg(div, { authorType: 'player' });
 }
