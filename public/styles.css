@@ -93,6 +93,35 @@ input:focus, textarea:focus { outline: 1px solid var(--accent); }
 #new-msgs button svg { width: 16px; height: 16px; display: inline-block; vertical-align: -3px; }
 .campaign-card .ra { color: var(--accent); margin-right: 8px; }
 
+/* table cards: character row under the title */
+.campaign-card b { display: block; }
+.campaign-card .who { display: flex; align-items: center; gap: 7px; margin-top: 6px;
+                      color: var(--text); font-size: 0.875rem; }
+.campaign-card .who i { color: var(--accent); font-size: 1rem; }
+.campaign-card .who .cls { color: var(--dim); }
+.campaign-card .who.none { color: var(--dim); }
+
+/* footer: our links on line 1, quiet attribution on line 2 */
+#brand-footer { display: flex; flex-direction: column; align-items: center; gap: 7px;
+                padding: 12px 14px calc(env(safe-area-inset-bottom) + 12px);
+                background: var(--panel); border-top: 1px solid #2a2620; }
+#brand-footer .row { display: flex; align-items: center; gap: 20px; font-size: 0.9rem; }
+#brand-footer a { color: var(--text); text-decoration: none; display: inline-flex; align-items: center; gap: 7px; }
+#brand-footer a:active { color: var(--accent); }
+.conn .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ok);
+             box-shadow: 0 0 0 0 rgba(107,143,107,0.5); animation: pulse 2.6s ease-out infinite; }
+#brand-footer.offline .dot { background: var(--danger); box-shadow: none; animation: none; }
+@keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(107,143,107,0.45); }
+                   70% { box-shadow: 0 0 0 6px rgba(107,143,107,0); }
+                   100% { box-shadow: 0 0 0 0 rgba(107,143,107,0); } }
+.conn .host, .conn #server-name { color: var(--dim); }
+#brand-footer .credit { display: flex; align-items: center; gap: 7px;
+                        color: var(--dim); font-size: 0.8rem; }
+#brand-footer .credit img { width: 16px; height: 16px; border-radius: 4px; display: block; }
+#brand-footer .credit a { color: var(--text); gap: 5px; font-size: 0.8rem; }
+#brand-footer .credit a span { font-family: var(--serif); }
+#brand-footer .gh svg { width: 18px; height: 18px; }
+
 /* login */
 #login { justify-content: center; padding: 24px; max-width: 420px; margin: 0 auto; }
 #login h1 { color: var(--accent); font-weight: 600; letter-spacing: 1px; font-family: var(--serif); }
@@ -116,7 +145,7 @@ input:focus, textarea:focus { outline: 1px solid var(--accent); }
   text-align: left; background: var(--panel); border: 1px solid #2a2620;
   border-radius: var(--radius); padding: 14px; display: block; width: 100%;
 }
-.campaign-card b { font-size: 1rem; }
+.campaign-card b { font-family: var(--serif); font-weight: 600; font-size: 1rem; }
 .campaign-card small { color: var(--dim); display: block; margin-top: 2px; }
 
 /* transcript */

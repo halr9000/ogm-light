@@ -84,6 +84,7 @@ $('logout').addEventListener('click', async () => {
 
 async function home() {
   show('home');
+  brandFooter();
   const list = $('campaign-list');
   list.innerHTML = '<p class="error">loading…</p>';
   try {
@@ -96,15 +97,36 @@ async function home() {
     for (const c of data.campaigns) {
       const b = document.createElement('button');
       b.className = 'campaign-card';
-      const as = c.playingAs ? ` · playing ${c.playingAs.name || c.playingAs}` : '';
-      const glance = c.glance?.scene ? ` — ${c.glance.scene}` : '';
-      b.innerHTML = `<i class="ra ra-scroll-unfurled" aria-hidden="true"></i><b>${esc(c.title || c.name || 'Untitled')}</b><small>${esc(String(as).replace('· playing null', ''))}${esc(glance)}</small>`;
+      b.innerHTML = `<b>${esc(c.title || c.name || 'Untitled')}</b><span class="who"></span>`;
+      const who = b.querySelector('.who');
+      // one light call per table for the active character; a miss just
+      // leaves the quiet "no character" state. innerHTML is safe: the icon
+      // class comes from the CLASS_ICONS whitelist, name/class go through esc().
+      api(`/api/campaigns/${c.id}/sheet`).then(({ sheet }) => {
+        if (!sheet) { who.textContent = 'no character'; who.classList.add('none'); return; }
+        const icon = CLASS_ICONS[String(sheet.class || '').toLowerCase()] || 'ra-pawn';
+        who.innerHTML = `<i class="ra ${icon}" aria-hidden="true"></i>${esc(sheet.name || '')}` +
+          (sheet.class ? ` <span class="cls">· ${esc(String(sheet.class).toLowerCase())}</span>` : '');
+      }).catch(() => { who.textContent = 'no character'; who.classList.add('none'); });
       b.addEventListener('click', () => openTable(c));
       list.appendChild(b);
     }
   } catch (err) {
     list.innerHTML = `<p class="error">${esc(err.message)}</p>`;
     throw err;
+  }
+}
+
+// footer identity + connection state, from our own /api/health
+async function brandFooter() {
+  const foot = $('brand-footer');
+  try {
+    const h = await api('/api/health');
+    $('server-name').textContent = h.server || '';
+    $('conn-link').href = h.origin || '#';
+    foot.classList.toggle('offline', !h.up);
+  } catch {
+    foot.classList.add('offline');
   }
 }
 

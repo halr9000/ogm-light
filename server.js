@@ -5,6 +5,7 @@ const http = require('http');
 const https = require('https');
 const fs = require('fs');
 const path = require('path');
+const os = require('os');
 
 // Configuration (env, all optional):
 //   OGML_PORT     port this server listens on            (default 3222)
@@ -25,6 +26,13 @@ try {
 }
 const OGM_HOST = OGM_URL.hostname;
 const OGM_PORT = Number(OGM_URL.port) || (OGM_URL.protocol === 'https:' ? 443 : 80);
+// Name shown in the footer: the FQDN from OGML_OGM_URL, lowercased. A
+// loopback config says nothing about the machine, so fall back to the
+// host's own hostname. OGML_OGM_PUBLIC_URL (optional) is the address
+// players should use to reach the full OGM, for the footer link.
+const LOOPBACK = new Set(['localhost', '127.0.0.1', '::1']);
+const SERVER_NAME = String(LOOPBACK.has(OGM_HOST) ? os.hostname() : OGM_HOST).toLowerCase();
+const OGM_PUBLIC_URL = process.env.OGML_OGM_PUBLIC_URL || OGM_URL.origin;
 const PUBLIC = path.join(__dirname, 'public');
 
 const TYPES = {
@@ -80,6 +88,22 @@ const server = http.createServer((req, res) => {
   // /generated-audio/* is the OGM's narration audio; same-origin keeps the
   // <audio> element cookie-free and cache-friendly, like /api/*.
   if (!url.pathname.startsWith('/api/') && !url.pathname.startsWith('/generated-audio/')) return serveStatic(req, res);
+
+  // /api/health is ours: adds the server name for the footer and whether
+  // the OGM behind the proxy is actually reachable right now.
+  if (url.pathname === '/api/health') {
+    const reply = (up) => {
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ ok: true, server: SERVER_NAME, origin: OGM_PUBLIC_URL, up }));
+    };
+    const probe = (OGM_URL.protocol === 'https:' ? https : http).get(
+      { host: OGM_HOST, port: OGM_PORT, path: '/api/health', timeout: 1500 },
+      (up) => { up.resume(); reply(up.statusCode < 500); },
+    );
+    probe.on('timeout', () => { probe.destroy(); reply(false); });
+    probe.on('error', () => reply(false));
+    return;
+  }
 
   const proxied = (OGM_URL.protocol === 'https:' ? https : http).request(
     {
