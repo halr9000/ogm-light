@@ -71,17 +71,8 @@ node server.js
 
 That serves on 0.0.0.0:3222 and proxies to 127.0.0.1:3005. Open
 http://\<host\>:3222 on your phone and log in with your OGM account.
-
-Environment variables, all optional:
-
-| var | default | what it does |
-|---|---|---|
-| `OGML_PORT` | 3222 | port this server listens on |
-| `OGML_HOST` | 0.0.0.0 | bind address |
-| `OGML_OGM_URL` | `http://127.0.0.1:3005` | base URL of the OGM service to proxy to, e.g. `http://192.168.1.10:3005` or `https://ogm.internal` |
-
-https URLs work. The L stands for "light": the `OGML_` prefix keeps these
-settings away from anything OGM itself defines.
+Port, bind address, and proxy target are configured at the top of
+`server.js` if you need them moved; the L stands for "light".
 
 ## Under the hood
 
