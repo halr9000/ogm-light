@@ -136,6 +136,8 @@ input:focus, textarea:focus { outline: 1px solid var(--accent); }
   background: var(--panel);
   border-bottom: 1px solid #2a2620;
 }
+.wordmark .ogm { color: var(--accent); letter-spacing: 0.06em; }
+.wordmark .light { font-style: italic; font-weight: 500; color: var(--dim); letter-spacing: 0.01em; }
 .bar h2 { margin: 0; font-size: 1.06rem; font-weight: 600; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--serif); }
 .bar-actions { display: flex; gap: 2px; }
 
